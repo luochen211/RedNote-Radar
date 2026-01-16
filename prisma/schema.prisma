@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  username    String       @unique
+  password    String
+  role        String       @default("USER") // 'USER' | 'ADMIN'
+  hotelName   String?
+  employeeId  String?
+  createdAt   DateTime     @default(now())
+  submissions Submission[]
+  logs        UsageLog[]
+}
+
+model Submission {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  status      String   @default("PENDING") // 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  inputData   String   // JSON string of input data
+  resultData  String?  // JSON string of result
+  createdAt   DateTime @default(now())
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  ip        String?
+  location  String?
+  timestamp DateTime @default(now())
+}
