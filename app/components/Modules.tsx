@@ -79,7 +79,7 @@ export default function Modules() {
             </div>
             <div className="module-grid">
                 {modules.map((item, idx) => (
-                    <div key={item.title} className="module-card">
+                    <div key={item.title} className="module-card sheen-effect">
                         <div className="module-header">
                             <span className="module-number">{idx + 1}</span>
                             <h4 className="module-title">{moduleTitle(item)}</h4>

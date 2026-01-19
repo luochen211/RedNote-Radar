@@ -2,6 +2,8 @@ import "./globals.css";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider } from "./context/AuthContext";
 import SessionProvider from "./components/SessionProvider";
+import SmoothScroll from "./components/SmoothScroll";
+import Navbar from "./components/Navbar";
 import { ReactNode } from "react";
 
 export const metadata = {
@@ -29,13 +31,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <SessionProvider>
-          <LanguageProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </LanguageProvider>
-        </SessionProvider>
+        <SmoothScroll>
+          <SessionProvider>
+            <LanguageProvider>
+              <AuthProvider>
+                <Navbar />
+                {children}
+              </AuthProvider>
+            </LanguageProvider>
+          </SessionProvider>
+        </SmoothScroll>
       </body>
     </html>
   );

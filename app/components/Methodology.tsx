@@ -55,14 +55,26 @@ export default function Methodology() {
                     <p className="pill accent">{t.methodIntroTitle}</p>
                     <h2>{t.heroTitle}</h2>
                     <p className="muted">{t.methodIntroLead}</p>
-                    <p className="muted">{t.methodDetail}</p>
+                    <p className="muted" style={{ lineHeight: 1.8, fontSize: '1.05rem', marginTop: 16 }}>{t.methodDetail}</p>
                 </div>
             </div>
             <div className="method-columns single">
                 <div className="method-stack">
                     {t.methodLong.map((line, idx) => (
                         <div key={idx} className="method-item">
-                            <div className="method-index">{idx + 1}</div>
+                            <div className="method-index" style={{
+                                fontSize: 24,
+                                fontWeight: 'bold',
+                                color: '#6ae3ff',
+                                border: '1px solid rgba(106, 227, 255, 0.3)',
+                                background: 'rgba(106, 227, 255, 0.1)',
+                                borderRadius: '12px',
+                                display: 'grid',
+                                placeItems: 'center',
+                                width: 48,
+                                height: 48,
+                                flexShrink: 0
+                            }}>{idx + 1}</div>
                             <div className="method-text">{line}</div>
                         </div>
                     ))}

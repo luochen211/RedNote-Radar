@@ -41,6 +41,22 @@ a {
   margin: 0 auto;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
 /* Common container removal - rolling back */
 /* .hero,
 .framework,
@@ -51,7 +67,7 @@ a {
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
   position: relative;
   align-items: stretch;
   /* Removed top margin since page padding handles it */
@@ -93,6 +109,7 @@ a {
   /* Ensure it scrolls with the page */
   position: relative;
   background: rgba(17, 25, 42, 0.7);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   padding: 18px 0 24px;
   border-radius: 0;
@@ -305,7 +322,7 @@ a {
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
   position: relative;
   align-items: stretch;
 }
@@ -315,6 +332,7 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   position: relative;
   overflow: hidden;
@@ -344,6 +362,11 @@ a {
 }
 
 .pill.accent {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
   background: rgba(106, 227, 255, 0.16);
   color: #c5f6ff;
   border: 1px solid rgba(106, 227, 255, 0.35);
@@ -463,11 +486,74 @@ a {
   max-width: 720px;
 }
 
-.quick-grid {
+.feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-  margin: 12px 0 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 24px 0 32px;
+}
+
+.feature-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(17, 25, 42, 0.4);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(106, 227, 255, 0.1), transparent 80%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  background: rgba(17, 25, 42, 0.6);
+  border-color: rgba(106, 227, 255, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(106, 227, 255, 0.1);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(106, 227, 255, 0.1);
+  color: var(--accent);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.feature-card:hover .feature-icon {
+  background: var(--accent);
+  color: #070b13;
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 0 15px var(--accent);
+}
+
+.feature-text {
+  font-weight: 600;
+  color: #e8f0ff;
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
 }
 
 .chip {
@@ -1474,7 +1560,7 @@ a {
   margin-right: calc(50% - 50vw);
   padding: 40px 0;
   border-radius: 0;
-  min-height: auto;
+  min-height: 0;
   display: flex;
   justify-content: center;
   margin-bottom: -60px;
@@ -1648,6 +1734,7 @@ a {
   /* Rounder corners */
   padding: 24px;
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   /* Stronger blur */
   box-shadow:
@@ -1751,6 +1838,7 @@ a {
   line-height: 1;
   background: linear-gradient(180deg, #fff, #b4dfff);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 4px 12px rgba(106, 227, 255, 0.15);
   margin-top: -10px;
@@ -1996,6 +2084,7 @@ a {
   display: flex;
   justify-content: center;
   background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   padding: 6px;
   border-radius: 20px;
@@ -2241,4 +2330,239 @@ a {
 /* Animations */
 .enter-done {
   animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ========================================
+   ENHANCED VISUAL EFFECTS - Premium 9.5/10
+   ======================================== */
+
+/* Sheen Effect for Feature Cards */
+@keyframes sheenSweep {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.feature-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(106, 227, 255, 0.15),
+      transparent);
+  transform: translateX(-100%) skewX(-15deg);
+  pointer-events: none;
+}
+
+.feature-card:hover::after {
+  animation: sheenSweep 0.6s ease-out;
+}
+
+/* Enhanced Footer Styling */
+.links {
+  position: relative;
+  margin-top: 60px;
+  padding: 48px 32px 40px;
+  background: linear-gradient(180deg, transparent 0%, rgba(17, 25, 42, 0.6) 100%);
+  border-top: 1px solid rgba(106, 227, 255, 0.15);
+}
+
+.links::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.links-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.links .section-head {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.links .section-head h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e8f0ff;
+  margin: 8px 0 0;
+}
+
+.links-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.links-col {
+  text-align: left;
+}
+
+.links-col-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(106, 227, 255, 0.2);
+}
+
+.links-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.links-col li {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.links-col li a {
+  color: var(--muted);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.links-col li a:hover {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(106, 227, 255, 0.4);
+}
+
+.links-col li a::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.links-col li a:hover::after {
+  width: 100%;
+}
+
+/* Scroll-triggered Fade Up Animations */
+.fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fade-up.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.fade-up.delay-2 {
+  animation-delay: 0.2s;
+}
+
+.fade-up.delay-3 {
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeUpIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced Module Card Effects */
+.sheen-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen-effect::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg,
+      transparent 40%,
+      rgba(106, 227, 255, 0.08) 50%,
+      transparent 60%);
+  transform: rotate(45deg) translateY(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.sheen-effect:hover::after {
+  transform: rotate(45deg) translateY(100%);
+}
+
+/* Pulse Glow Effect for Brand Pill */
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(106, 227, 255, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(106, 227, 255, 0.5), 0 0 40px rgba(106, 227, 255, 0.2);
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Text Gradient Effect */
+.text-gradient {
+  background: linear-gradient(135deg, #e8f4ff 0%, #6ae3ff 50%, #7c8bff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced Method Item Hover */
+.method-item {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+}
+
+.method-item:hover {
+  background: rgba(106, 227, 255, 0.05);
+  transform: translateX(8px);
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+  .links-columns {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .links-col {
+    text-align: center;
+  }
+
+  .links-col-title {
+    display: inline-block;
+  }
 }
