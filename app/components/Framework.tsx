@@ -100,7 +100,7 @@ export default function Framework() {
                         border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}
                 >
-                    <motion.div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: borderRadius === 0 ? 0 : 12, overflow: 'hidden' }}>
+                    <motion.div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: 12, overflow: 'hidden' }}>
                         <Image
                             src="/framework.png"
                             alt="Model architecture"
