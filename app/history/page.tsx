@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
 import Link from "next/link";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -71,7 +70,6 @@ export default function HistoryPage() {
 
     return (
         <div className="page">
-            <Navbar />
             <section className="glass fade-up" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
                 <h3>{t.pageTitle}</h3>
 

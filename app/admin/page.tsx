@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
+
 import { useLanguage } from "../context/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -86,7 +86,7 @@ export default function AdminPage() {
             router.push('/');
         }
         if (status === 'authenticated') {
-            if ((session?.user as any).role !== 'admin') {
+            if ((session?.user as any).role !== 'ADMIN') {
                 router.push('/'); // Redirect non-admins
             } else {
                 fetchData();
@@ -132,12 +132,12 @@ export default function AdminPage() {
     };
 
     if (status === 'loading' || loading) {
-        return <div className="page"><Navbar /><div className="loader">{t.loading}</div></div>;
+        return <div className="page"><div className="loader">{t.loading}</div></div>;
     }
 
     return (
         <div className="page">
-            <Navbar />
+
             <section className="glass fade-up" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
                     <h3>{t.pageTitle}</h3>

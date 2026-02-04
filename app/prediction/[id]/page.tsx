@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import Navbar from "../../components/Navbar";
 import { useLanguage } from "../../context/LanguageContext";
 
 const copy = {
@@ -56,13 +55,10 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
 
                 if (data.status === 'COMPLETED' && data.resultData) {
                     const result = JSON.parse(data.resultData);
-                    // result.engagementScore.local / global
 
-                    // Clear interval if completed
                     if (intervalRef.current) clearInterval(intervalRef.current);
 
                     setLoading(false);
-                    // Animate scores
                     requestAnimationFrame(() => {
                         setLocalScore(result.engagementScore?.local || 0);
                         setGlobalScore(result.engagementScore?.global || 0);
@@ -72,16 +68,12 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                     setError(t.errorFailed);
                     setLoading(false);
                 }
-                // If PENDING/PROCESSING, keep loading
             } catch (e) {
                 console.error(e);
             }
         };
 
-        // Initial fetch
         fetchStatus();
-
-        // Poll every 2 seconds
         intervalRef.current = setInterval(fetchStatus, 2000);
 
         return () => {
@@ -89,40 +81,35 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
         };
     }, [params.id, t]);
 
-    // Helper to calculate rotation
-    // Score 0-100? Docs say "prediction of probability". 
-    // Requirement 4.73: 0-100.
-    // Gauge: 0 is left, 100 is right? Or 180 degrees?
-    // Start angle?
-    // Let's assume standard semi-circle gauge 0-180 deg.
-    // 0 score -> 0 deg. 100 score -> 180 deg.
     const getRotation = (val: number) => {
-        // Clamp 0-100
+        // Clamp 0-100, Map to -90 to 90 degrees if semi-circle, or 0 to 180.
+        // CSS transform rotate usually starts from 12 o'clock or 3 o'clock depending on setup.
+        // Assuming the needle starts bottom center pointing UP (0deg), we want -90 (left) to 90 (right).
+        // Let's adjust based on the CSS gauge implementation.
+        // If 0 is left horizontal and 180 is right horizontal.
         const clamped = Math.max(0, Math.min(100, val));
-        return (clamped / 100) * 180;
+        return (clamped / 100) * 180 - 90; // -90deg to 90deg
     };
 
     return (
         <div className="page">
-            <Navbar />
-
-            <section className="prediction-section fade-up delay-1" style={{ marginTop: 32 }}>
+            <section className="prediction-section fade-up delay-1">
                 {error ? (
-                    <div className="loader" style={{ textAlign: 'center', padding: '100px 0', color: '#ff6b6b' }}>
+                    <div className="prediction-loader error">
                         <h3>{error}</h3>
                     </div>
                 ) : loading ? (
-                    <div className="loader" style={{ textAlign: 'center', padding: '100px 0' }}>
-                        <div className="spinner" style={{ margin: '0 auto' }}></div>
-                        <p className="muted" style={{ marginTop: 24, fontSize: 18 }}>{t.loading}</p>
+                    <div className="prediction-loader">
+                        <div className="spinner"></div>
+                        <p className="muted">{t.loading}</p>
                     </div>
                 ) : (
                     <div className="prediction-content">
                         {/* Local Scope */}
-                        <div className="result-block glass" style={{ marginBottom: 24, padding: 32, borderRadius: 16 }}>
-                            <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff' }}>{t.localTitle}</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
-                                <div className="gauge-wrap" style={{ margin: 0 }}>
+                        <div className="result-block glass">
+                            <h3 className="result-header">{t.localTitle}</h3>
+                            <div className="result-grid">
+                                <div className="gauge-wrap">
                                     <div className="gauge">
                                         <div className="gauge-arc"></div>
                                         <div
@@ -135,18 +122,18 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="muted" style={{ lineHeight: 1.6 }}>
-                                        <strong style={{ color: '#fff' }}>{t.localLabel}</strong> {t.localDesc}
+                                    <p className="result-description">
+                                        <strong>{t.localLabel}</strong> {t.localDesc}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Global Scope */}
-                        <div className="result-block glass" style={{ padding: 32, borderRadius: 16 }}>
-                            <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff' }}>{t.globalTitle}</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
-                                <div className="gauge-wrap" style={{ margin: 0 }}>
+                        <div className="result-block glass">
+                            <h3 className="result-header">{t.globalTitle}</h3>
+                            <div className="result-grid">
+                                <div className="gauge-wrap">
                                     <div className="gauge">
                                         <div className="gauge-arc"></div>
                                         <div
@@ -159,13 +146,12 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="muted" style={{ lineHeight: 1.6 }}>
-                                        <strong style={{ color: '#fff' }}>{t.globalLabel}</strong> {t.globalDesc}
+                                    <p className="result-description">
+                                        <strong>{t.globalLabel}</strong> {t.globalDesc}
                                     </p>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 )}
             </section>

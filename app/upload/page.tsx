@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, DragEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "../components/Navbar";
+
 import { useLanguage } from "../context/LanguageContext";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { FileUpload } from "@/components/ui/FileUpload";
+import { TagInput } from "@/components/ui/TagInput";
+import { Button } from "@/components/ui/Button";
 
 const copy = {
     en: {
@@ -13,9 +18,9 @@ const copy = {
         labelVideo: "Video",
         clickUploadVideo: "Click to upload video",
         supportVideo: "Supported formats: MP4",
-        labelCover: "Video cover image",
+        labelCover: "Video cover image (Optional)",
         clickUploadCover: "Upload cover",
-        supportCover: "Supported formats: JPG, PNG",
+        supportCover: "Default: First frame of video",
         labelTitle: "Title",
         placeholderTitle: "Enter video title",
         labelText: "Text content",
@@ -34,9 +39,9 @@ const copy = {
         labelVideo: "视频",
         clickUploadVideo: "点击上传视频",
         supportVideo: "支持格式：MP4",
-        labelCover: "视频封面图",
+        labelCover: "视频封面图 (选填)",
         clickUploadCover: "上传封面",
-        supportCover: "支持格式：JPG, PNG",
+        supportCover: "默认截取视频首帧",
         labelTitle: "标题",
         placeholderTitle: "输入视频标题",
         labelText: "文本内容",
@@ -55,15 +60,11 @@ export default function UploadPage() {
     const { lang } = useLanguage();
     const t = copy[lang];
     const [isProcessing, setIsProcessing] = useState(false);
-    const videoInputRef = useRef<HTMLInputElement>(null);
-    const coverInputRef = useRef<HTMLInputElement>(null);
-    const [isDraggingVideo, setIsDraggingVideo] = useState(false);
-    const [isDraggingCover, setIsDraggingCover] = useState(false);
 
     // Form States
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [tags, setTags] = useState(["", "", ""]);
+    const [tags, setTags] = useState([""]);
     const [followers, setFollowers] = useState("");
     const [subscribers, setSubscribers] = useState("");
     const [likes, setLikes] = useState("");
@@ -72,48 +73,12 @@ export default function UploadPage() {
     const [videoName, setVideoName] = useState("");
     const [coverName, setCoverName] = useState("");
 
-    const handleVideoSelect = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setVideoName(file.name);
-            setIsDraggingVideo(false);
-        }
+    const handleVideoSelect = (file: File) => {
+        setVideoName(file.name);
     };
 
-    const handleCoverSelect = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setCoverName(file.name);
-            setIsDraggingCover(false);
-        }
-    };
-
-    const handleVideoDrop = (event: DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        const file = event.dataTransfer?.files?.[0];
-        if (file) {
-            setVideoName(file.name);
-        }
-        setIsDraggingVideo(false);
-    };
-
-    const handleCoverDrop = (event: DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        const file = event.dataTransfer?.files?.[0];
-        if (file) {
-            setCoverName(file.name);
-        }
-        setIsDraggingCover(false);
-    };
-
-    const handleAddTag = () => {
-        setTags([...tags, ""]);
-    };
-
-    const handleTagChange = (index: number, value: string) => {
-        const newTags = [...tags];
-        newTags[index] = value;
-        setTags(newTags);
+    const handleCoverSelect = (file: File) => {
+        setCoverName(file.name);
     };
 
     const handleSubmit = async () => {
@@ -133,7 +98,7 @@ export default function UploadPage() {
                 subscribers: Number(subscribers) || 0,
                 likes: Number(likes) || 0,
                 video: videoName || "mock_video.mp4",
-                cover: coverName || "mock_cover.jpg"
+                cover: coverName || "" // Empty cover implies default to video frame
             };
 
             const res = await fetch('/api/upload', {
@@ -156,10 +121,6 @@ export default function UploadPage() {
 
     return (
         <div className="page">
-            <Navbar />
-
-
-
             <section className="upload-section glass fade-up delay-1" style={{ padding: 32, marginTop: 32 }}>
                 <div className="section-head" style={{ marginBottom: 32 }}>
                     <h3>{t.pageTitle}</h3>
@@ -167,217 +128,83 @@ export default function UploadPage() {
 
                 <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 32 }}>
                     {/* 1. Video */}
-                    <div className="stack">
-                        <label className="muted">{t.labelVideo}</label>
-                        <div
-                            className="upload-box"
-                            style={{
-                                border: `1px dashed ${isDraggingVideo ? 'rgba(106,227,255,0.8)' : 'rgba(255,255,255,0.2)'}`,
-                                borderRadius: 8,
-                                padding: '40px 20px',
-                                textAlign: 'center',
-                                background: isDraggingVideo ? 'rgba(106,227,255,0.08)' : 'rgba(255,255,255,0.02)',
-                                cursor: 'pointer'
-                            }}
-                            onClick={() => videoInputRef.current?.click()}
-                            onDragOver={(e) => { e.preventDefault(); setIsDraggingVideo(true); }}
-                            onDragLeave={() => setIsDraggingVideo(false)}
-                            onDrop={handleVideoDrop}
-                        >
-                            <div style={{ fontWeight: 600, color: '#e8f0ff', marginBottom: 8 }}>{t.clickUploadVideo}</div>
-                            <div className="muted tiny">{t.supportVideo}</div>
-
-                            {videoName && <div style={{ color: '#6ae3ff', marginTop: 12 }}>{videoName}</div>}
-                        </div>
-                        <input
-                            ref={videoInputRef}
-                            type="file"
-                            accept="video/mp4"
-                            style={{ display: 'none' }}
-                            onChange={handleVideoSelect}
-                        />
-                    </div>
+                    <FileUpload
+                        label={t.labelVideo}
+                        accept="video/mp4"
+                        clickText={t.clickUploadVideo}
+                        supportText={t.supportVideo}
+                        fileName={videoName}
+                        onFileSelect={handleVideoSelect}
+                    />
 
                     {/* 2. Cover Image */}
-                    <div className="stack">
-                        <label className="muted">{t.labelCover}</label>
-                        <div
-                            className="upload-box"
-                            style={{
-                                border: `1px dashed ${isDraggingCover ? 'rgba(106,227,255,0.8)' : 'rgba(255,255,255,0.2)'}`,
-                                borderRadius: 8,
-                                padding: '40px 20px',
-                                textAlign: 'center',
-                                background: isDraggingCover ? 'rgba(106,227,255,0.08)' : 'rgba(255,255,255,0.02)',
-                                cursor: 'pointer'
-                            }}
-                            onClick={() => coverInputRef.current?.click()}
-                            onDragOver={(e) => { e.preventDefault(); setIsDraggingCover(true); }}
-                            onDragLeave={() => setIsDraggingCover(false)}
-                            onDrop={handleCoverDrop}
-                        >
-                            <div style={{ fontWeight: 600, color: '#e8f0ff', marginBottom: 8 }}>{t.clickUploadCover}</div>
-                            <div className="muted tiny">{t.supportCover}</div>
-
-                            {coverName && <div style={{ color: '#6ae3ff', marginTop: 12 }}>{coverName}</div>}
-                        </div>
-                        <input
-                            ref={coverInputRef}
-                            type="file"
-                            accept="image/jpeg,image/png"
-                            style={{ display: 'none' }}
-                            onChange={handleCoverSelect}
-                        />
-                    </div>
+                    <FileUpload
+                        label={t.labelCover}
+                        accept="image/jpeg,image/png"
+                        clickText={t.clickUploadCover}
+                        supportText={t.supportCover}
+                        fileName={coverName}
+                        onFileSelect={handleCoverSelect}
+                    />
 
                     {/* 3. Title */}
                     <div className="stack full" style={{ gridColumn: '1 / -1' }}>
-                        <label className="muted">{t.labelTitle}</label>
-                        <input
-                            type="text"
-                            className="input-field"
+                        <Input
+                            label={t.labelTitle}
                             placeholder={t.placeholderTitle}
-
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: 8,
-                                color: '#fff'
-                            }}
                         />
                     </div>
 
                     {/* 4. Text Content */}
                     <div className="stack full" style={{ gridColumn: '1 / -1' }}>
-                        <label className="muted">{t.labelText}</label>
-                        <textarea
-                            rows={5}
+                        <Textarea
+                            label={t.labelText}
                             placeholder={t.placeholderText}
-
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: 8,
-                                color: '#fff'
-                            }}
                         />
                     </div>
 
                     {/* 5. Tags */}
-                    <div className="stack full" style={{ gridColumn: '1 / -1' }}>
-                        <label className="muted">{t.labelTags}</label>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                            {tags.map((tag, idx) => (
-                                <input
-                                    key={idx}
-                                    type="text"
-                                    value={tag}
-                                    onChange={(e) => handleTagChange(idx, e.target.value)}
-                                    placeholder={`${t.placeholderTag} ${idx + 1}`}
-                                    style={{
-                                        width: 120,
-                                        padding: '8px 12px',
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: 6,
-                                        color: '#fff',
-                                        fontSize: 14
-                                    }}
-                                />
-                            ))}
-                            <button
-                                onClick={handleAddTag}
-                                style={{
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: 6,
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    background: 'transparent',
-                                    color: '#fff',
-                                    cursor: 'pointer',
-                                    fontSize: 18
-                                }}
-                            >
-                                +
-                            </button>
-                        </div>
-                    </div>
+                    <TagInput
+                        label={t.labelTags}
+                        tags={tags}
+                        placeholder={t.placeholderTag}
+                        onTagsChange={setTags}
+                    />
 
-                    {/* 6. Hotel Followers */}
-                    <div className="stack">
-                        <label className="muted">{t.labelFollowers}</label>
-                        <input
-                            type="number"
-                            className="input-field"
-                            value={followers}
-                            onChange={(e) => setFollowers(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: 8,
-                                color: '#fff'
-                            }}
-                        />
-                    </div>
+                    {/* 6. Metrics */}
+                    <Input
+                        type="number"
+                        label={t.labelFollowers}
+                        value={followers}
+                        onChange={(e) => setFollowers(e.target.value)}
+                    />
 
-                    {/* 7. Hotel Subscribers */}
-                    <div className="stack">
-                        <label className="muted">{t.labelSubscribers}</label>
-                        <input
-                            type="number"
-                            className="input-field"
-                            value={subscribers}
-                            onChange={(e) => setSubscribers(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: 8,
-                                color: '#fff'
-                            }}
-                        />
-                    </div>
+                    <Input
+                        type="number"
+                        label={t.labelSubscribers}
+                        value={subscribers}
+                        onChange={(e) => setSubscribers(e.target.value)}
+                    />
 
-                    {/* 8. Hotel Likes */}
-                    <div className="stack">
-                        <label className="muted">{t.labelLikes}</label>
-                        <input
-                            type="number"
-                            className="input-field"
-                            value={likes}
-                            onChange={(e) => setLikes(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: 8,
-                                color: '#fff'
-                            }}
-                        />
-                    </div>
-
+                    <Input
+                        type="number"
+                        label={t.labelLikes}
+                        value={likes}
+                        onChange={(e) => setLikes(e.target.value)}
+                    />
                 </div>
 
                 <div style={{ marginTop: 40, display: 'flex', justifyContent: 'center' }}>
-                    <button
-                        className="primary-button"
-                        style={{ padding: '14px 48px', fontSize: 16 }}
+                    <Button
                         onClick={handleSubmit}
+                        isLoading={isProcessing}
                     >
                         {t.btnSubmit}
-                    </button>
+                    </Button>
                 </div>
             </section>
         </div>

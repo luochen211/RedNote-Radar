@@ -4,36 +4,34 @@ import { useLanguage } from "../context/LanguageContext";
 
 const copy = {
     en: {
-        linksTitle: "Advisors & partner links",
-        linksSubtitle: "Stay aligned with our advisors and partners",
-        linksAdvisors: "Advisors",
+        linksTitle: "Team & Partners",
+        linksSubtitle: "Project team and partner resources",
+        linksTeam: "Project Team",
         linksPartners: "Partners",
         linksContact: "Contact",
         contactEmail: "Email: info@insighthub.ai",
         contactLocation: "Location: Hong Kong · PolyU SHTM",
         contactTBD: "WeChat / Xiaohongshu / TikTok links TBD",
+        labelHost: "Project Host: Prof. Hengyun Li",
+        labelCollaborator: "Collaborator & Core: Dr. Jie Mu",
+        labelMembers: "Members: Dr. Danting Cai, Wei Zhang, Haoqiang Sun",
     },
     zh: {
-        linksTitle: "指导与合作链接",
-        linksSubtitle: "与我们的顾问和合作伙伴保持联系",
-        linksAdvisors: "顾问团队",
+        linksTitle: "团队与合作链接",
+        linksSubtitle: "项目团队与合作伙伴资源",
+        linksTeam: "项目团队",
         linksPartners: "合作伙伴",
         linksContact: "联系我们",
         contactEmail: "邮箱: info@insighthub.ai",
         contactLocation: "地址: 香港 · 香港理工大学酒店及旅游业管理学院",
         contactTBD: "微信 / 小红书 / 抖音 链接待定",
+        labelHost: "项目主持人：李恒云 教授",
+        labelCollaborator: "项目合作者 兼 核心成员：慕杰 博士",
+        labelMembers: "成员：蔡丹婷 博士，张薇，孙浩强等",
     },
 };
 
 const friendLinks = [
-    {
-        label: "Project Advisor · Prof. Hengyun Li",
-        url: "https://hengyunli.github.io/index.html",
-    },
-    {
-        label: "Technical Advisor · Dr. Jie Mu",
-        url: "https://dsai.dufe.edu.cn/content_71197.html",
-    },
     {
         label: "Hotel Icon",
         url: "https://www.hotel-icon.com/zh-tw/",
@@ -51,7 +49,8 @@ const friendLinks = [
 export default function FooterLinks() {
     const { lang } = useLanguage();
     const t = copy[lang];
-    const copyLabel = (key: keyof typeof t) => t[key];
+    // @ts-ignore
+    const copyLabel = (key: string) => t[key] || "";
 
     return (
         <section className="links fade-up delay-3" id="links">
@@ -61,30 +60,35 @@ export default function FooterLinks() {
                     <h3>{copyLabel("linksSubtitle")}</h3>
                 </div>
                 <div className="links-columns">
+                    {/* Column 1: Project Team */}
                     <div className="links-col">
-                        <div className="links-col-title">{copyLabel("linksAdvisors")}</div>
+                        <div className="links-col-title">{copyLabel("linksTeam")}</div>
                         <ul>
-                            {friendLinks.slice(0, 2).map((link) => (
-                                <li key={link.url}>
-                                    <a href={link.url} target="_blank" rel="noreferrer">
-                                        {link.label}
-                                    </a>
-                                </li>
-                            ))}
+                            <li>
+                                <a href="https://hengyunli.github.io" target="_blank" rel="noreferrer noopener">
+                                    {copyLabel("labelHost")}
+                                </a>
+                            </li>
+                            <li>{copyLabel("labelCollaborator")}</li>
+                            <li>{copyLabel("labelMembers")}</li>
                         </ul>
                     </div>
+
+                    {/* Column 2: Partners */}
                     <div className="links-col">
                         <div className="links-col-title">{copyLabel("linksPartners")}</div>
                         <ul>
-                            {friendLinks.slice(2).map((link) => (
+                            {friendLinks.map((link) => (
                                 <li key={link.url}>
-                                    <a href={link.url} target="_blank" rel="noreferrer">
+                                    <a href={link.url} target="_blank" rel="noreferrer noopener">
                                         {link.label}
                                     </a>
                                 </li>
                             ))}
                         </ul>
                     </div>
+
+                    {/* Column 3: Contact */}
                     <div className="links-col">
                         <div className="links-col-title">{copyLabel("linksContact")}</div>
                         <ul>

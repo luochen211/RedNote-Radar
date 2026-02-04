@@ -32,34 +32,38 @@ const copy = {
 
 export default function Navbar() {
     const { lang, setLang } = useLanguage();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const t = copy[lang];
     const pathname = usePathname();
 
-    const navItems = [
-        { label: lang === 'en' ? "Home" : "首页", href: "/" },
+    console.log("Navbar render:", { user, pathname });
+
+    const publicNav = [
+        {
+            label: t.navOverview || (lang === 'en' ? "Overview" : "项目介绍"),
+            href: "/overview"
+        }
     ];
 
-    if (user) {
-        navItems.push({
+    const authedNav = user ? [
+        { label: lang === 'en' ? "Home" : "首页", href: "/" },
+        {
             label: t.navUpload || (lang === 'en' ? "Data Upload" : "数据上传"),
             href: "/upload"
-        });
-        // Points to History for listing past predictions/analysis
-        navItems.push({
+        },
+        {
             label: t.navHistory || (lang === 'en' ? "History" : "历史记录"),
             href: "/history"
-        });
-
-        if (user.role === 'admin') {
-            navItems.push({
+        },
+        ...(user.role.toLowerCase() === 'admin'
+            ? [{
                 label: t.navAdmin || (lang === 'en' ? "Admin" : "管理后台"),
                 href: "/admin"
-            });
-        }
-    }
+            }]
+            : [])
+    ] : [];
 
-    const { logout } = useAuth();
+    const navItems = [...publicNav, ...authedNav];
 
     return (
         <nav className="hero-banner">
@@ -67,20 +71,22 @@ export default function Navbar() {
                 <div className="brand">
                     <div className="brand-title">{t.brand}</div>
                 </div>
-                <div className="nav-links">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`nav-link ${isActive ? "active" : ""}`}
-                            >
-                                {item.label}
-                            </Link>
-                        )
-                    })}
-                </div>
+                {navItems.length > 0 && (
+                    <div className="nav-links">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`nav-link ${isActive ? "active" : ""}`}
+                                >
+                                    {item.label}
+                                </Link>
+                            )
+                        })}
+                    </div>
+                )}
                 <div className="actions" style={{ display: 'flex', gap: 12 }}>
                     <button
                         className="ghost-button"

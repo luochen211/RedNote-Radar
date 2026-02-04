@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from "react";
-import Navbar from "../../components/Navbar";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -92,6 +91,12 @@ const copy = {
         lblOriental: "Oriental",
         lblWestern: "Western",
         lblControlModern: "Control_Modern_Norm",
+        localTitle: "Engagement score prediction (Local scope)",
+        localDesc: "Based on the like count range from Hotel Icon's own historical data, this refers to the prediction of the probability that the video content will achieve a high level of engagement relative to its Hotel Icon's performance history.",
+        localLabel: "Local scope:",
+        globalTitle: "Engagement score prediction (Global scope)",
+        globalDesc: "Based on the range of likes from all official hotel accounts on the Xiaohongshu platform within the dataset, this refers to the prediction of the the probability that the video content will reach industry-leading engagement levels.",
+        globalLabel: "Global scope:",
     },
     zh: {
         loading: "正在加载分析结果...",
@@ -126,6 +131,12 @@ const copy = {
         lblOriental: "东方",
         lblWestern: "西方",
         lblControlModern: "现代规范控制",
+        localTitle: "互动指数预测（本号范围）",
+        localDesc: "基于唯港荟现有历史数据的点赞数范围，指该视频内容相对于唯港荟历史表现，能够获得高互动的概率预测。",
+        localLabel: "本号范围：",
+        globalTitle: "互动指数预测（全网范围）",
+        globalDesc: "基于数据集内全网小红书酒店官方账号的点赞数范围，指该视频内容能够达到行业头部互动水平的概率预测。",
+        globalLabel: "全网范围：",
     }
 };
 
@@ -270,6 +281,134 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
     );
 };
 
+// Cyberpunk Gauge Component
+const CyberGauge = ({ value, label, size = 200 }: { value: number, label: string, size?: number }) => {
+    const radius = size * 0.4;
+    const cx = size / 2;
+    const cy = size / 2;
+
+    // 240 degree gauge
+    const startAngle = 135;
+    const endAngle = 405;
+    const totalAngle = endAngle - startAngle;
+
+    // Value to angle
+    const angle = startAngle + (value / 100) * totalAngle;
+
+    // Helper to get coordinates
+    const getCoords = (a: number, r: number) => {
+        const rad = (a * Math.PI) / 180;
+        return {
+            x: cx + r * Math.cos(rad),
+            y: cy + r * Math.sin(rad)
+        };
+    };
+
+    // Ticks
+    const ticks = [];
+    for (let i = 0; i <= 40; i++) {
+        const tickVal = (i / 40) * 100;
+        const tickAngle = startAngle + (i / 40) * totalAngle;
+        const isMajor = i % 4 === 0;
+        const innerR = isMajor ? radius - 15 : radius - 8;
+        const outerR = radius;
+        const p1 = getCoords(tickAngle, innerR);
+        const p2 = getCoords(tickAngle, outerR);
+
+        ticks.push(
+            <line
+                key={i}
+                x1={p1.x} y1={p1.y}
+                x2={p2.x} y2={p2.y}
+                stroke={isMajor ? "rgba(106, 227, 255, 0.6)" : "rgba(106, 227, 255, 0.2)"}
+                strokeWidth={isMajor ? 2 : 1}
+            />
+        );
+    }
+
+    // Gradient Arc (Need path command)
+    const describeArc = (x: number, y: number, r: number, start: number, end: number) => {
+        // SVG angles: 0 is right (3 o'clock)
+        const startP = getCoords(end, r);
+        const endP = getCoords(start, r);
+
+        const largeArc = end - start <= 180 ? "0" : "1";
+
+        return [
+            "M", startP.x, startP.y,
+            "A", r, r, 0, largeArc, 0, endP.x, endP.y
+        ].join(" ");
+    };
+
+    const needleTip = getCoords(angle, radius - 20);
+
+    return (
+        <div style={{ position: 'relative', width: size, height: size }}>
+            <svg width={size} height={size}>
+                {/* Glow Filter */}
+                <defs>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#6ae3ff" />
+                        <stop offset="100%" stopColor="#7c8bff" />
+                    </linearGradient>
+                </defs>
+
+                {/* Ticks */}
+                {ticks}
+
+                {/* Background Arc */}
+                <path
+                    d={describeArc(cx, cy, radius - 25, startAngle, endAngle)}
+                    fill="none"
+                    stroke="rgba(255,255,255,0.1)"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                />
+
+                {/* Foregound active Arc */}
+                <path
+                    d={describeArc(cx, cy, radius - 25, startAngle, angle)}
+                    fill="none"
+                    stroke="url(#grad)"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    filter="url(#glow)"
+                    style={{ transition: 'd 1s ease-out' }}
+                />
+
+                {/* Needle */}
+                <circle cx={cx} cy={cy} r="6" fill="#6ae3ff" />
+                <line
+                    x1={cx} y1={cy}
+                    x2={needleTip.x} y2={needleTip.y}
+                    stroke="#6ae3ff"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    filter="url(#glow)"
+                    style={{ transition: 'all 1s ease-out' }}
+                />
+            </svg>
+
+            {/* Value Text */}
+            <div style={{
+                position: 'absolute',
+                top: '60%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                zIndex: 10
+            }}>
+                <div className="tech-value" style={{ fontSize: size * 0.2 }}>{value}</div>
+                <div className="tech-label" style={{ fontSize: size * 0.06 }}>{label}</div>
+            </div>
+        </div>
+    );
+};
+
 export default function AnalysisPage({ params }: { params: { id: string } }) {
     const { lang } = useLanguage();
     const t = copy[lang];
@@ -279,8 +418,15 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<any>(null); // To store valid structure
+    const [data, setData] = useState<any>(null); // Analysis data
+    const [scores, setScores] = useState<any>(null); // Prediction scores
     const router = useRouter();
+
+    // Helper for gauge rotation
+    const getRotation = (val: number) => {
+        const clamped = Math.max(0, Math.min(100, val));
+        return (clamped / 100) * 180;
+    };
 
     const handleMouseMove = (e: React.MouseEvent) => {
         setMousePos({ x: e.clientX, y: e.clientY });
@@ -295,12 +441,9 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                     if (json.status === 'COMPLETED' && json.resultData) {
                         const result = JSON.parse(json.resultData);
                         setData(result.analysis);
+                        setScores(result.engagementScore);
                         setLoading(false);
                     } else if (json.status === 'PROCESSING' || json.status === 'PENDING') {
-                        // Redirect back to prediction if not ready?? Or show loading?
-                        // Better to just tell user it's processing
-                        // For now, let's just wait a bit or auto-refresh?
-                        // The user usually comes here FROM prediction page which confirms completion.
                         // But if refreshed, might need to re-poll?
                         // Let's assume completed for simplicity or simple polling
                     }
@@ -313,40 +456,97 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     }, [params.id]);
 
 
-    // Enhanced Metric Card
-    const MetricCard = ({ label, value, type = "score", maxValue = 100 }: { label: string, value: string | number, type?: "score" | "binary" | "percent", maxValue?: number }) => {
+    // Enhanced Metric Card (Tech HUD Style)
+    const MetricCard = ({ label, value, type = "score", maxValue = 100 }: { label: string, value: string | number | boolean, type?: "score" | "binary" | "percent", maxValue?: number }) => {
         const isPercent = typeof value === 'string' && value.includes('%');
-        const numValue = isPercent ? parseInt(value as string) : (typeof value === 'number' ? value : 0);
+        let numValue = 0;
+
+        if (isPercent) {
+            numValue = parseInt(value as string);
+        } else if (typeof value === 'number') {
+            numValue = value;
+            // If value is small float (0-1), map to 0-100 for grading
+            if (numValue <= 1 && numValue >= -1) numValue = numValue * 100;
+        }
+
+        // Calculate Grade
+        let grade = '';
+        let gradeColor = '#6ae3ff'; // Default Cyan
+        if (type === 'score' || type === 'percent') {
+            const score = Math.abs(numValue); // Handle negative sentiment too for magnitude
+            if (score >= 90) { grade = 'S'; gradeColor = '#facc15'; } // Gold
+            else if (score >= 80) { grade = 'A'; gradeColor = '#a855f7'; } // Purple
+            else if (score >= 60) { grade = 'B'; gradeColor = '#6ae3ff'; } // Cyan
+            else { grade = 'C'; gradeColor = '#98a7c3'; } // Grey
+        }
+
+        // Binary Display
+        if (type === 'binary') {
+            const isActive = value === 1 || value === true || value === '1' || value === 'true';
+            return (
+                <div
+                    className="tech-card"
+                    onMouseEnter={() => setHoveredMetric(label)}
+                    onMouseLeave={() => setHoveredMetric(null)}
+                    onMouseMove={handleMouseMove}
+                    style={{ cursor: 'help', minHeight: 180 }}
+                >
+                    <div className="hud-corner top-left"></div>
+                    <div className="hud-corner top-right"></div>
+                    <div className="hud-corner bottom-left"></div>
+                    <div className="hud-corner bottom-right"></div>
+
+                    <div className="tech-label">{label}</div>
+
+                    <div style={{
+                        fontSize: 24,
+                        color: isActive ? '#6ae3ff' : '#98a7c3',
+                        fontWeight: 700,
+                        border: `1px solid ${isActive ? 'rgba(106,227,255,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                        padding: '8px 24px',
+                        borderRadius: 4,
+                        background: isActive ? 'rgba(106,227,255,0.1)' : 'transparent',
+                        textShadow: isActive ? '0 0 10px rgba(106,227,255,0.5)' : 'none'
+                    }}>
+                        {isActive ? 'DETECTED' : 'NONE'}
+                    </div>
+                </div>
+            )
+        }
 
         return (
             <div
-                className="metric-card glass-card"
+                className="tech-card"
                 onMouseEnter={() => setHoveredMetric(label)}
                 onMouseLeave={() => setHoveredMetric(null)}
                 onMouseMove={handleMouseMove}
-                style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 16,
-                    padding: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: 160,
-                    position: 'relative',
-                    cursor: 'help',
-                    transition: 'all 0.3s ease'
-                }}
+                style={{ cursor: 'help', minHeight: 180 }}
             >
-                <div style={{ marginBottom: 16, fontSize: 13, color: '#98a7c3', textAlign: 'center', minHeight: 40, display: 'flex', alignItems: 'center' }}>
-                    {label}
+                <div className="hud-corner top-left"></div>
+                <div className="hud-corner top-right"></div>
+                <div className="hud-corner bottom-left"></div>
+                <div className="hud-corner bottom-right"></div>
+
+                <div style={{ position: 'absolute', top: 16, right: 16 }}>
+                    <div style={{
+                        color: gradeColor,
+                        fontWeight: 800,
+                        fontSize: 16,
+                        border: `1px solid ${gradeColor}`,
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        opacity: 0.8
+                    }}>
+                        {grade}
+                    </div>
                 </div>
 
+                <div className="tech-label">{label}</div>
+
                 {isPercent ? (
-                    <CircularProgress value={numValue} label={label} />
+                    <CircularProgress value={numValue} label={label} size={100} color={gradeColor} />
                 ) : (
-                    <div style={{ fontSize: 32, fontWeight: 700, color: '#e8f0ff' }}>
+                    <div className="tech-value" style={{ color: gradeColor, textShadow: `0 0 15px ${gradeColor}66` }}>
                         {value}
                     </div>
                 )}
@@ -354,34 +554,39 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
         );
     };
 
-    // Bar Metric Card
+    // Bar Metric Card (Segmented Equalizer Style)
     const BarMetricCard = ({ label, value }: { label: string, value: string }) => {
         const numValue = parseInt(value);
+        // Create 20 segments
+        const segments = Array.from({ length: 20 }, (_, i) => i);
+        const activeCount = Math.round((numValue / 100) * 20);
+
         return (
             <div
-                className="metric-card glass-card"
+                className="tech-card"
                 onMouseEnter={() => setHoveredMetric(label)}
                 onMouseLeave={() => setHoveredMetric(null)}
                 onMouseMove={handleMouseMove}
-                style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 16,
-                    padding: 24,
-                    minHeight: 100,
-                    position: 'relative',
-                    cursor: 'help',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                }}
+                style={{ cursor: 'help', alignItems: 'stretch', padding: '24px', minWidth: 300 }}
             >
+                <div className="hud-corner top-left"></div>
+                <div className="hud-corner top-right"></div>
+                <div className="hud-corner bottom-left"></div>
+                <div className="hud-corner bottom-right"></div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, color: '#98a7c3', maxWidth: '80%' }}>{label}</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff' }}>{value}</div>
+                    <div className="tech-label" style={{ marginBottom: 0, textAlign: 'left' }}>{label}</div>
+                    <div className="tech-value" style={{ fontSize: 20 }}>{value}</div>
                 </div>
-                <LinearProgress value={numValue} />
+
+                <div className="segment-bar">
+                    {segments.map(i => (
+                        <div
+                            key={i}
+                            className={`segment ${i < activeCount ? 'active' : ''} ${i < activeCount && i > 15 ? 'high' : ''}`}
+                        />
+                    ))}
+                </div>
             </div>
         );
     };
@@ -389,7 +594,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     if (loading || !data) {
         return (
             <div className="page" style={{ position: 'relative' }}>
-                <Navbar />
+
                 <div className="loader" style={{ textAlign: 'center', padding: '100px 0' }}>
                     <div className="spinner" style={{ margin: '0 auto' }}></div>
                     <p className="muted" style={{ marginTop: 24, color: '#e8f0ff' }}>{t.loading}</p>
@@ -400,7 +605,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
     return (
         <div className="page" style={{ position: 'relative' }}>
-            <Navbar />
+
 
             {/* Custom Chat-Style Floating Tooltip */}
             {hoveredMetric && (
@@ -430,6 +635,47 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 </div>
             )}
 
+            {/* Prediction Scores Section */}
+            {scores && (
+                <section className="score-section fade-up" style={{ marginTop: 24, padding: '0 20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                        {/* Local Scope */}
+                        <div className="tech-card" style={{ flexDirection: 'row', gap: 32, padding: 40 }}>
+                            <div className="hud-corner top-left"></div>
+                            <div className="hud-corner top-right"></div>
+                            <div className="hud-corner bottom-left"></div>
+                            <div className="hud-corner bottom-right"></div>
+
+                            <CyberGauge value={scores.local || 0} label="Local Score" size={240} />
+
+                            <div style={{ flex: 1 }}>
+                                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff', fontSize: 24 }}>{t.localTitle}</h3>
+                                <p className="muted" style={{ lineHeight: 1.6 }}>
+                                    <strong style={{ color: '#6ae3ff' }}>{t.localLabel}</strong> {t.localDesc}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Global Scope */}
+                        <div className="tech-card" style={{ flexDirection: 'row', gap: 32, padding: 40 }}>
+                            <div className="hud-corner top-left"></div>
+                            <div className="hud-corner top-right"></div>
+                            <div className="hud-corner bottom-left"></div>
+                            <div className="hud-corner bottom-right"></div>
+
+                            <CyberGauge value={scores.global || 0} label="Global Score" size={240} />
+
+                            <div style={{ flex: 1 }}>
+                                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff', fontSize: 24 }}>{t.globalTitle}</h3>
+                                <p className="muted" style={{ lineHeight: 1.6 }}>
+                                    <strong style={{ color: '#6ae3ff' }}>{t.globalLabel}</strong> {t.globalDesc}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
             <div className="tabs" style={{ display: 'flex', gap: 10, marginTop: 32, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <button className={`ghost-button ${activeTab === 'quality' ? 'active' : ''}`} onClick={() => setActiveTab('quality')}>{t.tabQuality}</button>
                 <button className={`ghost-button ${activeTab === 'sentiment' ? 'active' : ''}`} onClick={() => setActiveTab('sentiment')}>{t.tabSentiment}</button>
@@ -440,25 +686,26 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
             <section className="analysis-section glass fade-up delay-1" style={{ padding: 40, marginTop: 24, minHeight: 500 }}>
 
                 {activeTab === 'quality' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
-                        <MetricCard label={t.lblVideoAes} value={data.quality.aesthetic} />
-                        <MetricCard label={t.lblReadability} value={data.quality.readability} />
-                        <MetricCard label={t.lblCoverQuality} value={data.quality.coverQuality} />
-                        <MetricCard label={t.lblCoverAes} value={data.quality.coverAesthetic} />
-                        <MetricCard label={t.lblVoice} value={data.quality.voice} type="binary" />
-                        <MetricCard label={t.lblFace} value={data.quality.face} type="binary" />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center' }}>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblVideoAes} value={data.quality.aesthetic} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblReadability} value={data.quality.readability} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblCoverQuality} value={data.quality.coverQuality} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblCoverAes} value={data.quality.coverAesthetic} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblVoice} value={data.quality.voice} type="binary" /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblFace} value={data.quality.face} type="binary" /></div>
                     </div>
                 )}
 
                 {activeTab === 'sentiment' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
-                        <MetricCard label={t.lblTitleSent} value={data.sentiment.title} />
-                        <MetricCard label={t.lblTextSent} value={data.sentiment.text} />
-                        <MetricCard label={t.lblTextArousal} value={data.sentiment.textArousal} />
-                        <MetricCard label={t.lblAudioSent} value={data.sentiment.audio} />
-                        <MetricCard label={t.lblAudioArousal} value={data.sentiment.audioArousal} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center' }}>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblTitleSent} value={data.sentiment.title} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblTextSent} value={data.sentiment.text} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblTextArousal} value={data.sentiment.textArousal} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblAudioSent} value={data.sentiment.audio} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblAudioArousal} value={data.sentiment.audioArousal} /></div>
                     </div>
                 )}
+
 
                 {activeTab === 'consistency' && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: 24 }}>

@@ -16,9 +16,19 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { username: credentials.username }
-                });
+                console.log("Authorize called with:", { username: credentials.username, passwordLength: credentials.password?.length });
+
+                let user;
+                try {
+                    console.log("Attempting to find user in DB...");
+                    user = await prisma.user.findUnique({
+                        where: { username: credentials.username }
+                    });
+                    console.log("User lookup result:", user ? `Found user ${user.id}` : "User not found");
+                } catch (e) {
+                    console.error("Prisma Error in authorize:", e);
+                    return null;
+                }
 
                 if (!user) {
                     return null;
@@ -28,6 +38,8 @@ export const authOptions: NextAuthOptions = {
                     credentials.password,
                     user.password
                 );
+
+                console.log("Password valid:", isPasswordValid);
 
                 if (!isPasswordValid) {
                     return null;

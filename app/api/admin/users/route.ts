@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || (session.user as any).role !== 'ADMIN') {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
 export async function DELETE(req: Request) {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || (session.user as any).role !== 'ADMIN') {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 

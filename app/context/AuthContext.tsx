@@ -30,13 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    const user: User | null = session?.user ? {
-        account: session.user.name || "",
-        role: (session.user as any).role || "user",
-        name: session.user.name || "",
-        loginTime: new Date().toISOString(), // Mock, or from session if available
-        id: (session.user as any).id,
-    } : null;
+    console.log("AuthProvider session:", session);
+
+    const user: User | null = session?.user
+        ? {
+            account: session.user.name || "",
+            role: (((session.user as any).role || "user") as string).toLowerCase() as 'admin' | 'user',
+            name: session.user.name || "",
+            loginTime: new Date().toISOString(), // Mock, or from session if available
+            id: (session.user as any).id,
+        }
+        : null;
 
     const login = async (account: string, password: string): Promise<boolean> => {
         const res = await signIn('credentials', {
