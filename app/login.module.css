@@ -4,94 +4,145 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 24px 48px;
+  padding: 84px 18px 40px;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
-  background: #f5f7fb;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(2, 132, 199, 0.08), transparent 30%),
+    radial-gradient(circle at 86% 8%, rgba(37, 99, 235, 0.08), transparent 28%),
+    #f5f7fb;
   font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
   color: #0f172a;
 }
 
 .grid {
-  width: min(1200px, 100%);
+  width: min(1560px, 100%);
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(560px, 0.95fr);
+  gap: clamp(72px, 8vw, 156px);
   align-items: center;
+}
+
+@media (max-width: 1280px) {
+  .grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(460px, 1fr);
+    gap: clamp(36px, 5vw, 80px);
+  }
 }
 
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 }
 
 .heroWrap {
   display: block;
+  transform: translateY(0);
 }
 
 .cardWrap {
   display: block;
+  transform: translateY(0);
+  max-width: 620px;
+  width: 100%;
+  justify-self: end;
+}
+
+@media (max-width: 900px) {
+  .cardWrap {
+    max-width: 100%;
+    justify-self: stretch;
+  }
 }
 
 .screen :global(.hero-copy h1) {
-  margin: 0 0 12px;
-  font-size: 48px;
-  line-height: 1.2;
+  margin: 0 0 16px;
+  font-size: clamp(40px, 5.2vw, 68px);
+  line-height: 1.12;
 }
 
 .screen :global(.hero-copy .lead) {
   color: #475569;
-  font-size: 17px;
-  line-height: 1.7;
-  max-width: 700px;
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.68;
+  max-width: 720px;
+}
+
+.screen :global(.hero-copy) {
+  position: relative;
+  padding: 34px 38px;
+  border-radius: 26px;
+  border: 1px solid rgba(2, 132, 199, 0.18);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 14px 34px rgba(2, 132, 199, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  overflow: hidden;
+}
+
+.screen :global(.hero-copy)::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.16), transparent 66%);
+  pointer-events: none;
 }
 
 .screen :global(.login-card) {
-  padding: 24px;
+  padding: 34px;
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+  min-height: 420px;
+  margin-top: 0;
 }
 
 .screen :global(.login-card .card-head) {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .screen :global(.login-card .pill) {
   display: inline-block;
-  padding: 8px 14px;
+  padding: 9px 16px;
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.12);
   color: #2563eb;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .screen :global(.login-card .caption) {
   color: #475569;
   margin-top: 6px;
+  font-size: 15px;
 }
 
 .screen :global(.form) {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .screen :global(.form label) {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 14px;
+  gap: 7px;
+  font-size: 15px;
   color: #0f172a;
 }
 
 .screen :global(.form input) {
   border-radius: 10px;
-  padding: 12px 12px;
+  padding: 14px 13px;
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
@@ -100,23 +151,24 @@
 }
 
 .screen :global(.form input:focus) {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
 }
 
 .screen :global(.primary-button) {
   width: 100%;
-  background: #2563eb;
+  background: #0284c7;
   border: none;
   color: #fff;
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  padding: 14px 16px;
   font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
 }
 
 .screen :global(.primary-button:hover) {
-  background: #1d4ed8;
+  background: #2563eb;
 }
 
 .screen :global(.message) {
@@ -173,4 +225,10 @@
 
 .screen :global(.login-main) {
   width: 100%;
+  max-width: min(1560px, 100%);
+  padding-left: 12px;
+  padding-right: 12px;
+  align-items: center;
+  min-height: calc(100vh - 120px);
+  padding-top: 0;
 }

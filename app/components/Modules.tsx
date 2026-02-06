@@ -96,8 +96,8 @@ export default function Modules() {
             padding: 10px;
         }
         .module-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(2, 132, 199, 0.16);
             border-radius: 12px;
             padding: 20px;
             transition: all 0.3s ease;
@@ -106,9 +106,9 @@ export default function Modules() {
         }
         .module-card:hover {
             transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(106, 227, 255, 0.3);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.94);
+            border-color: rgba(2, 132, 199, 0.3);
+            box-shadow: 0 12px 28px rgba(2, 132, 199, 0.12);
         }
         .module-card::before {
             content: '';
@@ -117,7 +117,7 @@ export default function Modules() {
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at top right, rgba(106, 227, 255, 0.1), transparent 60%);
+            background: radial-gradient(circle at top right, rgba(2, 132, 199, 0.12), transparent 60%);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -133,17 +133,17 @@ export default function Modules() {
         .module-number {
             font-size: 24px;
             font-weight: 800;
-            color: rgba(106, 227, 255, 0.5);
+            color: rgba(2, 132, 199, 0.58);
             font-family: monospace;
         }
         .module-title {
             margin: 0;
             font-size: 18px;
-            color: #e8f0ff;
+            color: var(--text);
             font-weight: 600;
         }
         .module-desc {
-            color: #98a7c3;
+            color: var(--muted);
             font-size: 14px;
             line-height: 1.6;
             margin: 0;

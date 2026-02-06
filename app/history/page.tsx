@@ -18,24 +18,22 @@ const copy = {
         loading: "Loading...",
         noHistory: "No history found.",
         untitled: "Untitled",
-        status: {
-            COMPLETED: "COMPLETED",
-            FAILED: "FAILED",
-            PROCESSING: "PROCESSING",
-            PENDING: "PENDING"
-        }
+        noCover: "No cover",
+        keyScoresTitle: "Key Scores",
+        localScore: "Local Score",
+        globalScore: "Global Score",
+        noScore: "--",
     },
     zh: {
         pageTitle: "历史记录",
         loading: "加载中...",
         noHistory: "暂无历史记录。",
         untitled: "未命名",
-        status: {
-            COMPLETED: "已完成",
-            FAILED: "失败",
-            PROCESSING: "处理中",
-            PENDING: "等待中"
-        }
+        noCover: "无封面",
+        keyScoresTitle: "关键评分",
+        localScore: "本号评分",
+        globalScore: "全网评分",
+        noScore: "--",
     }
 };
 
@@ -69,43 +67,114 @@ export default function HistoryPage() {
     }, []);
 
     return (
-        <div className="page">
-            <section className="glass fade-up" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
+        <div className="page app-page">
+            <section className="glass app-section app-section-lg fade-up" style={{ minHeight: '72vh' }}>
                 <h3>{t.pageTitle}</h3>
 
                 {loading ? (
                     <div style={{ marginTop: 20 }}>{t.loading}</div>
                 ) : (
-                    <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className="app-stack" style={{ marginTop: 20 }}>
                         {history.length === 0 && <div>{t.noHistory}</div>}
                         {history.map(item => {
-                            const input = JSON.parse(item.inputData);
+                            let parsedTitle = t.untitled;
+                            let localScore = "";
+                            let globalScore = "";
+                            try {
+                                const input = JSON.parse(item.inputData || "{}") as { title?: string };
+                                parsedTitle = input.title || t.untitled;
+                            } catch {
+                                parsedTitle = t.untitled;
+                            }
+                            try {
+                                const result = JSON.parse(item.resultData || "{}") as {
+                                    engagementScore?: { local?: number | string; global?: number | string };
+                                };
+                                const local = result.engagementScore?.local;
+                                const global = result.engagementScore?.global;
+                                localScore = typeof local === "number" ? `${local}` : (local || "");
+                                globalScore = typeof global === "number" ? `${global}` : (global || "");
+                            } catch {
+                                localScore = "";
+                                globalScore = "";
+                            }
                             return (
                                 <Link
                                     href={item.status === 'COMPLETED' ? `/analysis/${item.id}` : `/prediction/${item.id}`} // Assuming logic
                                     key={item.id}
                                     style={{ textDecoration: 'none' }}
                                 >
-                                    <div className="upload-box" style={{
+                                    <div className="upload-box history-card" style={{
                                         padding: 20,
                                         borderRadius: 8,
-                                        background: 'rgba(255,255,255,0.05)',
+                                        background: 'rgba(255,255,255,0.92)',
+                                        border: '1px solid rgba(2,132,199,0.15)',
                                         display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 14,
                                         justifyContent: 'space-between',
-                                        alignItems: 'center'
                                     }}>
-                                        <div>
-                                            <div style={{ fontWeight: 600, color: '#fff' }}>{input.title || t.untitled}</div>
-                                            <div className="muted tiny">{new Date(item.createdAt).toLocaleString()}</div>
-                                        </div>
                                         <div style={{
-                                            padding: '4px 12px',
-                                            borderRadius: 20,
-                                            fontSize: 12,
-                                            background: item.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(250, 204, 21, 0.2)',
-                                            color: item.status === 'COMPLETED' ? '#4ade80' : '#facc15'
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 14,
+                                            minWidth: 0,
                                         }}>
-                                            {t.status[item.status as keyof typeof t.status] || item.status}
+                                            <div style={{
+                                                width: 78,
+                                                height: 52,
+                                                borderRadius: 8,
+                                                overflow: 'hidden',
+                                                border: '1px solid rgba(2,132,199,0.14)',
+                                                background: 'rgba(2,132,199,0.05)',
+                                                position: 'relative',
+                                                flex: '0 0 auto',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: 'var(--muted)',
+                                                fontSize: 11
+                                            }}>
+                                                <span>{t.noCover}</span>
+                                                <img
+                                                    src={`/api/history/${item.id}/cover`}
+                                                    alt={parsedTitle}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover',
+                                                        position: 'absolute',
+                                                        inset: 0
+                                                    }}
+                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                />
+                                            </div>
+                                            <div style={{ minWidth: 0 }}>
+                                                <div style={{ fontWeight: 600, color: 'var(--text)' }}>{parsedTitle}</div>
+                                                <div className="muted tiny">{new Date(item.createdAt).toLocaleString()}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 12 }}>
+                                            <div className="upload-box" style={{
+                                                padding: '6px 10px',
+                                                borderRadius: 8,
+                                                border: '1px solid rgba(2,132,199,0.16)',
+                                                background: 'rgba(255,255,255,0.92)',
+                                                minWidth: 92
+                                            }}>
+                                                <div className="muted tiny">{t.localScore}</div>
+                                                <div style={{ fontWeight: 700, color: 'var(--text)' }}>{localScore || t.noScore}</div>
+                                            </div>
+                                            <div className="upload-box" style={{
+                                                padding: '6px 10px',
+                                                borderRadius: 8,
+                                                border: '1px solid rgba(2,132,199,0.16)',
+                                                background: 'rgba(255,255,255,0.92)',
+                                                minWidth: 92
+                                            }}>
+                                                <div className="muted tiny">{t.globalScore}</div>
+                                                <div style={{ fontWeight: 700, color: 'var(--text)' }}>{globalScore || t.noScore}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>

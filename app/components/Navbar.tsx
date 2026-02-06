@@ -16,9 +16,10 @@ const copy = {
         navUpload: "Data Upload",
         navHistory: "History",
         navAdmin: "Admin",
+        navProfile: "Profile",
     },
     zh: {
-        brand: "酒店短视频智算台",
+        brand: "酒店短视频智能平台",
         navLogin: "登录",
         navOverview: "介绍",
         navArchitecture: "架构",
@@ -27,6 +28,7 @@ const copy = {
         navUpload: "数据上传",
         navHistory: "历史记录",
         navAdmin: "管理后台",
+        navProfile: "个人信息",
     },
 };
 
@@ -35,8 +37,6 @@ export default function Navbar() {
     const { user, logout } = useAuth();
     const t = copy[lang];
     const pathname = usePathname();
-
-    console.log("Navbar render:", { user, pathname });
 
     const publicNav = [
         {
@@ -47,6 +47,10 @@ export default function Navbar() {
 
     const authedNav = user ? [
         { label: lang === 'en' ? "Home" : "首页", href: "/" },
+        {
+            label: t.navOverview || (lang === 'en' ? "Overview" : "项目介绍"),
+            href: "/overview"
+        },
         {
             label: t.navUpload || (lang === 'en' ? "Data Upload" : "数据上传"),
             href: "/upload"
@@ -60,10 +64,13 @@ export default function Navbar() {
                 label: t.navAdmin || (lang === 'en' ? "Admin" : "管理后台"),
                 href: "/admin"
             }]
-            : [])
+            : [{
+                label: t.navProfile || (lang === 'en' ? "Profile" : "个人信息"),
+                href: "/profile"
+            }])
     ] : [];
 
-    const navItems = [...publicNav, ...authedNav];
+    const navItems = user ? authedNav : publicNav;
 
     return (
         <nav className="hero-banner">
@@ -98,7 +105,7 @@ export default function Navbar() {
                         <button
                             className="ghost-button"
                             onClick={() => logout()}
-                            style={{ border: '1px solid rgba(255,100,100,0.5)', color: '#ffaaaa' }}
+                            style={{ border: '1px solid rgba(220,38,38,0.28)', color: '#b91c1c', background: 'rgba(220,38,38,0.06)' }}
                         >
                             {lang === "en" ? "Logout" : "退出"}
                         </button>

@@ -52,16 +52,18 @@ export const authOptions: NextAuthOptions = {
                 // We have user.id here.
                 // However, authorizing function shouldn't necessarily side-effect DB writes for logging in pure AuthJS philosophy, but it works.
                 */
-                try {
-                    await prisma.usageLog.create({
-                        data: {
-                            userId: user.id,
-                            action: "LOGIN",
-                            ip: "unknown"
-                        }
-                    });
-                } catch (e) {
-                    console.error(e);
+                if (user.role !== "ADMIN") {
+                    try {
+                        await prisma.usageLog.create({
+                            data: {
+                                userId: user.id,
+                                action: "LOGIN",
+                                ip: "unknown"
+                            }
+                        });
+                    } catch (e) {
+                        console.error(e);
+                    }
                 }
 
                 return {

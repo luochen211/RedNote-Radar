@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import ParticleBackground from "./components/ParticleBackground";
 import Hero from "./components/Hero";
 import LoginCard from "./components/LoginCard";

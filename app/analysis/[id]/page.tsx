@@ -66,7 +66,7 @@ const copy = {
         tabOriental: "Oriental Aesthetics Score",
         headerBalance: "Aesthetics Balance",
         headerStyle: "Cultural Style",
-        norm: "Normalized (0-1)",
+        norm: "Normalized (0-100)",
         lblVideoAes: "Video aesthetics score",
         lblReadability: "Text readability",
         lblCoverQuality: "Cover image quality score",
@@ -95,7 +95,7 @@ const copy = {
         localDesc: "Based on the like count range from Hotel Icon's own historical data, this refers to the prediction of the probability that the video content will achieve a high level of engagement relative to its Hotel Icon's performance history.",
         localLabel: "Local scope:",
         globalTitle: "Engagement score prediction (Global scope)",
-        globalDesc: "Based on the range of likes from all official hotel accounts on the Xiaohongshu platform within the dataset, this refers to the prediction of the the probability that the video content will reach industry-leading engagement levels.",
+        globalDesc: "Based on the range of likes from official hotel accounts on social media platforms within the dataset, this refers to the prediction of the probability that the video content will reach industry-leading engagement levels.",
         globalLabel: "Global scope:",
     },
     zh: {
@@ -106,7 +106,7 @@ const copy = {
         tabOriental: "东方美学评分",
         headerBalance: "美学平衡",
         headerStyle: "文化风格",
-        norm: "归一化 (0-1)",
+        norm: "归一化 (0-100)",
         lblVideoAes: "视频美学评分",
         lblReadability: "文本可读性",
         lblCoverQuality: "封面图像质量分",
@@ -135,14 +135,14 @@ const copy = {
         localDesc: "基于唯港荟现有历史数据的点赞数范围，指该视频内容相对于唯港荟历史表现，能够获得高互动的概率预测。",
         localLabel: "本号范围：",
         globalTitle: "互动指数预测（全网范围）",
-        globalDesc: "基于数据集内全网小红书酒店官方账号的点赞数范围，指该视频内容能够达到行业头部互动水平的概率预测。",
+        globalDesc: "基于数据集中社交媒体平台酒店官方账号的点赞数范围，指该视频内容能够达到行业头部互动水平的概率预测。",
         globalLabel: "全网范围：",
     }
 };
 
 // --- SVG Components ---
 
-const CircularProgress = ({ value, label, size = 120, color = "#6ae3ff" }: { value: number, label: string, size?: number, color?: string }) => {
+const CircularProgress = ({ value, label, size = 120, color = "#0284c7" }: { value: number, label: string, size?: number, color?: string }) => {
     const radius = size * 0.4;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (value / 100) * circumference;
@@ -155,7 +155,7 @@ const CircularProgress = ({ value, label, size = 120, color = "#6ae3ff" }: { val
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke="rgba(255,255,255,0.1)"
+                    stroke="rgba(15,23,42,0.12)"
                     strokeWidth="8"
                     fill="transparent"
                 />
@@ -174,15 +174,15 @@ const CircularProgress = ({ value, label, size = 120, color = "#6ae3ff" }: { val
                 />
             </svg>
             <div style={{ position: 'absolute', textAlign: 'center' }}>
-                <div style={{ fontSize: size * 0.22, fontWeight: 700, color: '#fff' }}>{value}%</div>
+                <div style={{ fontSize: size * 0.22, fontWeight: 700, color: 'var(--text)' }}>{value}%</div>
             </div>
         </div>
     );
 };
 
-const LinearProgress = ({ value, color = "#6ae3ff" }: { value: number, color?: string }) => {
+const LinearProgress = ({ value, color = "#0284c7" }: { value: number, color?: string }) => {
     return (
-        <div style={{ width: '100%', height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden', marginTop: 12 }}>
+        <div style={{ width: '100%', height: 8, background: 'rgba(15,23,42,0.08)', borderRadius: 4, overflow: 'hidden', marginTop: 12 }}>
             <div
                 style={{
                     width: `${value}%`,
@@ -196,11 +196,12 @@ const LinearProgress = ({ value, color = "#6ae3ff" }: { value: number, color?: s
     );
 };
 
-const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string, value: number, max: number }[], color?: string }) => {
+const RadarChartTriangle = ({ data, color = "#0284c7" }: { data: { label: string, value: number, max: number }[], color?: string }) => {
     const size = 300;
     const center = size / 2;
     const radius = size * 0.35;
     const angles = [-90, 30, 150];
+    const chartMax = Math.max(...data.map(item => item.max), 1);
 
     const getPoint = (value: number, max: number, angleDeg: number) => {
         const r = (value / max) * radius;
@@ -219,8 +220,8 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
         };
     };
 
-    const gridPoints = [0.25, 0.5, 0.75, 1].map(scale =>
-        angles.map(a => getPoint(scale * 10, 10, a))
+    const gridPoints = [0.2, 0.4, 0.6, 0.8, 1].map(scale =>
+        angles.map(a => getPoint(scale * chartMax, chartMax, a))
     );
 
     const dataPoints = data.map((d, i) => getPoint(d.value, d.max, angles[i]));
@@ -231,14 +232,14 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
             <svg width={size} height={size}>
                 {angles.map((a, i) => {
                     const p = getAxisPoint(a);
-                    return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />;
+                    return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} stroke="rgba(15,23,42,0.12)" strokeWidth="1" />;
                 })}
                 {gridPoints.map((triangle, i) => (
                     <polygon
                         key={i}
                         points={triangle.map(p => `${p.x},${p.y}`).join(" ")}
                         fill="none"
-                        stroke="rgba(255,255,255,0.1)"
+                        stroke="rgba(15,23,42,0.12)"
                         strokeWidth="1"
                     />
                 ))}
@@ -250,7 +251,7 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
                     strokeWidth="2"
                 />
                 {dataPoints.map((p, i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="4" fill="#fff" />
+                    <circle key={i} cx={p.x} cy={p.y} r="4" fill="var(--text)" />
                 ))}
             </svg>
             {angles.map((a, i) => {
@@ -265,7 +266,7 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
                             left: p.x + xOff,
                             top: p.y + yOff,
                             transform: 'translate(-50%, -50%)',
-                            color: '#98a7c3',
+                            color: 'var(--muted)',
                             fontSize: 12,
                             textAlign: 'center',
                             width: 100
@@ -273,7 +274,7 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
                     >
                         {data[i].label}
                         <br />
-                        <span style={{ color: '#fff', fontWeight: 600 }}>{data[i].value}</span>
+                        <span style={{ color: 'var(--text)', fontWeight: 600 }}>{data[i].value}</span>
                     </div>
                 );
             })}
@@ -352,8 +353,8 @@ const CyberGauge = ({ value, label, size = 200 }: { value: number, label: string
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
                     <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#6ae3ff" />
-                        <stop offset="100%" stopColor="#7c8bff" />
+                        <stop offset="0%" stopColor="#0284c7" />
+                        <stop offset="100%" stopColor="#3b82f6" />
                     </linearGradient>
                 </defs>
 
@@ -364,7 +365,7 @@ const CyberGauge = ({ value, label, size = 200 }: { value: number, label: string
                 <path
                     d={describeArc(cx, cy, radius - 25, startAngle, endAngle)}
                     fill="none"
-                    stroke="rgba(255,255,255,0.1)"
+                    stroke="rgba(15,23,42,0.12)"
                     strokeWidth="4"
                     strokeLinecap="round"
                 />
@@ -381,11 +382,11 @@ const CyberGauge = ({ value, label, size = 200 }: { value: number, label: string
                 />
 
                 {/* Needle */}
-                <circle cx={cx} cy={cy} r="6" fill="#6ae3ff" />
+                <circle cx={cx} cy={cy} r="6" fill="#0284c7" />
                 <line
                     x1={cx} y1={cy}
                     x2={needleTip.x} y2={needleTip.y}
-                    stroke="#6ae3ff"
+                    stroke="#0284c7"
                     strokeWidth="3"
                     strokeLinecap="round"
                     filter="url(#glow)"
@@ -421,6 +422,13 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     const [data, setData] = useState<any>(null); // Analysis data
     const [scores, setScores] = useState<any>(null); // Prediction scores
     const router = useRouter();
+
+    const toHundredScale = (value: number) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return 0;
+        const scaled = num <= 1 ? num * 100 : num;
+        return Number(scaled.toFixed(1));
+    };
 
     // Helper for gauge rotation
     const getRotation = (val: number) => {
@@ -471,13 +479,13 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
         // Calculate Grade
         let grade = '';
-        let gradeColor = '#6ae3ff'; // Default Cyan
+        let gradeColor = '#0284c7';
         if (type === 'score' || type === 'percent') {
             const score = Math.abs(numValue); // Handle negative sentiment too for magnitude
-            if (score >= 90) { grade = 'S'; gradeColor = '#facc15'; } // Gold
-            else if (score >= 80) { grade = 'A'; gradeColor = '#a855f7'; } // Purple
-            else if (score >= 60) { grade = 'B'; gradeColor = '#6ae3ff'; } // Cyan
-            else { grade = 'C'; gradeColor = '#98a7c3'; } // Grey
+            if (score >= 90) { grade = 'S'; gradeColor = '#d97706'; }
+            else if (score >= 80) { grade = 'A'; gradeColor = '#2563eb'; }
+            else if (score >= 60) { grade = 'B'; gradeColor = '#0284c7'; }
+            else { grade = 'C'; gradeColor = '#64748b'; }
         }
 
         // Binary Display
@@ -500,9 +508,9 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
                     <div style={{
                         fontSize: 24,
-                        color: isActive ? '#6ae3ff' : '#98a7c3',
+                        color: isActive ? '#0284c7' : '#64748b',
                         fontWeight: 700,
-                        border: `1px solid ${isActive ? 'rgba(106,227,255,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                        border: `1px solid ${isActive ? 'rgba(2,132,199,0.45)' : 'rgba(15,23,42,0.12)'}`,
                         padding: '8px 24px',
                         borderRadius: 4,
                         background: isActive ? 'rgba(106,227,255,0.1)' : 'transparent',
@@ -593,18 +601,18 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
     if (loading || !data) {
         return (
-            <div className="page" style={{ position: 'relative' }}>
+            <div className="page app-page" style={{ position: 'relative' }}>
 
                 <div className="loader" style={{ textAlign: 'center', padding: '100px 0' }}>
                     <div className="spinner" style={{ margin: '0 auto' }}></div>
-                    <p className="muted" style={{ marginTop: 24, color: '#e8f0ff' }}>{t.loading}</p>
+                    <p className="muted" style={{ marginTop: 24, color: 'var(--muted)' }}>{t.loading}</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="page" style={{ position: 'relative' }}>
+        <div className="page app-page" style={{ position: 'relative' }}>
 
 
             {/* Custom Chat-Style Floating Tooltip */}
@@ -615,21 +623,21 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                         top: mousePos.y + 20,
                         left: mousePos.x + 20,
                         maxWidth: 300,
-                        background: 'rgba(11, 18, 32, 0.95)',
+                        background: 'rgba(255, 255, 255, 0.96)',
                         backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(106, 227, 255, 0.3)',
+                        border: '1px solid rgba(2, 132, 199, 0.28)',
                         borderRadius: '4px 12px 12px 12px',
                         padding: '16px',
                         zIndex: 9999,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        boxShadow: '0 10px 30px rgba(15,23,42,0.14)',
                         pointerEvents: 'none',
                         animation: 'fadeIn 0.2s ease-out'
                     }}
                 >
-                    <div style={{ color: '#6ae3ff', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+                    <div style={{ color: 'var(--accent)', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
                         {hoveredMetric}
                     </div>
-                    <div style={{ color: '#e8f0ff', fontSize: 14, lineHeight: 1.5 }}>
+                    <div style={{ color: 'var(--text)', fontSize: 14, lineHeight: 1.5 }}>
                         {tooltips[hoveredMetric as keyof typeof tooltips]}
                     </div>
                 </div>
@@ -638,7 +646,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
             {/* Prediction Scores Section */}
             {scores && (
                 <section className="score-section fade-up" style={{ marginTop: 24, padding: '0 20px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 24 }}>
                         {/* Local Scope */}
                         <div className="tech-card" style={{ flexDirection: 'row', gap: 32, padding: 40 }}>
                             <div className="hud-corner top-left"></div>
@@ -649,9 +657,9 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                             <CyberGauge value={scores.local || 0} label="Local Score" size={240} />
 
                             <div style={{ flex: 1 }}>
-                                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff', fontSize: 24 }}>{t.localTitle}</h3>
+                                <h3 style={{ marginTop: 0, marginBottom: 16, color: 'var(--text)', fontSize: 24 }}>{t.localTitle}</h3>
                                 <p className="muted" style={{ lineHeight: 1.6 }}>
-                                    <strong style={{ color: '#6ae3ff' }}>{t.localLabel}</strong> {t.localDesc}
+                                    <strong style={{ color: 'var(--accent)' }}>{t.localLabel}</strong> {t.localDesc}
                                 </p>
                             </div>
                         </div>
@@ -666,9 +674,9 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                             <CyberGauge value={scores.global || 0} label="Global Score" size={240} />
 
                             <div style={{ flex: 1 }}>
-                                <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff', fontSize: 24 }}>{t.globalTitle}</h3>
+                                <h3 style={{ marginTop: 0, marginBottom: 16, color: 'var(--text)', fontSize: 24 }}>{t.globalTitle}</h3>
                                 <p className="muted" style={{ lineHeight: 1.6 }}>
-                                    <strong style={{ color: '#6ae3ff' }}>{t.globalLabel}</strong> {t.globalDesc}
+                                    <strong style={{ color: 'var(--accent)' }}>{t.globalLabel}</strong> {t.globalDesc}
                                 </p>
                             </div>
                         </div>
@@ -683,7 +691,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 <button className={`ghost-button ${activeTab === 'oriental' ? 'active' : ''}`} onClick={() => setActiveTab('oriental')}>{t.tabOriental}</button>
             </div>
 
-            <section className="analysis-section glass fade-up delay-1" style={{ padding: 40, marginTop: 24, minHeight: 500 }}>
+            <section className="analysis-section glass app-section app-section-lg fade-up delay-1" style={{ minHeight: 500 }}>
 
                 {activeTab === 'quality' && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center' }}>
@@ -719,21 +727,21 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 )}
 
                 {activeTab === 'oriental' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 40, alignItems: 'center' }}>
                         {/* Radar 1 */}
                         <div className="radar-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                             onMouseEnter={() => setHoveredMetric(t.lblRichness)}
                             onMouseLeave={() => setHoveredMetric(null)}
                             onMouseMove={handleMouseMove}
                         >
-                            <h3 style={{ color: '#e8f0ff', marginBottom: 20 }}>{t.headerBalance}</h3>
+                            <h3 style={{ color: 'var(--text)', marginBottom: 20 }}>{t.headerBalance}</h3>
                             <RadarChartTriangle
                                 data={[
-                                    { label: t.lblRichness, value: data.orientalAesthetics.richness, max: 1 },
-                                    { label: t.lblHarmony, value: data.orientalAesthetics.harmony, max: 1 },
-                                    { label: t.lblAdaption, value: data.orientalAesthetics.adaption, max: 1 }
+                                    { label: t.lblRichness, value: toHundredScale(data.orientalAesthetics.richness), max: 100 },
+                                    { label: t.lblHarmony, value: toHundredScale(data.orientalAesthetics.harmony), max: 100 },
+                                    { label: t.lblAdaption, value: toHundredScale(data.orientalAesthetics.adaption), max: 100 }
                                 ]}
-                                color="#6ae3ff"
+                                color="#0284c7"
                             />
                             <div className="muted tiny" style={{ marginTop: 10 }}>{t.norm}</div>
                         </div>
@@ -744,12 +752,12 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                             onMouseLeave={() => setHoveredMetric(null)}
                             onMouseMove={handleMouseMove}
                         >
-                            <h3 style={{ color: '#e8f0ff', marginBottom: 20 }}>{t.headerStyle}</h3>
+                            <h3 style={{ color: 'var(--text)', marginBottom: 20 }}>{t.headerStyle}</h3>
                             <RadarChartTriangle
                                 data={[
-                                    { label: t.lblModern, value: data.orientalAesthetics.modern, max: 1 },
-                                    { label: t.lblOriental, value: data.orientalAesthetics.oriental, max: 1 },
-                                    { label: t.lblWestern, value: data.orientalAesthetics.western, max: 1 }
+                                    { label: t.lblModern, value: toHundredScale(data.orientalAesthetics.modern), max: 100 },
+                                    { label: t.lblOriental, value: toHundredScale(data.orientalAesthetics.oriental), max: 100 },
+                                    { label: t.lblWestern, value: toHundredScale(data.orientalAesthetics.western), max: 100 }
                                 ]}
                                 color="#facc15"
                             />

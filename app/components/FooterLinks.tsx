@@ -9,12 +9,11 @@ const copy = {
         linksTeam: "Project Team",
         linksPartners: "Partners",
         linksContact: "Contact",
-        contactEmail: "Email: info@insighthub.ai",
         contactLocation: "Location: Hong Kong · PolyU SHTM",
-        contactTBD: "WeChat / Xiaohongshu / TikTok links TBD",
         labelHost: "Project Host: Prof. Hengyun Li",
         labelCollaborator: "Collaborator & Core: Dr. Jie Mu",
         labelMembers: "Members: Dr. Danting Cai, Wei Zhang, Haoqiang Sun",
+        labelFunding: "This project is funded by RCDTT Hotel ICON Grant",
     },
     zh: {
         linksTitle: "团队与合作链接",
@@ -22,12 +21,11 @@ const copy = {
         linksTeam: "项目团队",
         linksPartners: "合作伙伴",
         linksContact: "联系我们",
-        contactEmail: "邮箱: info@insighthub.ai",
         contactLocation: "地址: 香港 · 香港理工大学酒店及旅游业管理学院",
-        contactTBD: "微信 / 小红书 / 抖音 链接待定",
         labelHost: "项目主持人：李恒云 教授",
         labelCollaborator: "项目合作者 兼 核心成员：慕杰 博士",
         labelMembers: "成员：蔡丹婷 博士，张薇，孙浩强等",
+        labelFunding: "本项目由 RCDTT Hotel ICON Grant 资助",
     },
 };
 
@@ -37,14 +35,16 @@ const friendLinks = [
         url: "https://www.hotel-icon.com/zh-tw/",
     },
     {
-        label: "Hotel Icon · Xiaohongshu",
-        url: "https://www.xiaohongshu.com/explore",
+        label: "Hotel Icon · Social Media",
+        url: "https://www.xiaohongshu.com/user/profile/60794e420000000001004467?xhsshare=CopyLink&appuid=60499914000000000100af1e&apptime=1619586106",
     },
     {
         label: "PolyU School of Hotel and Tourism Management",
         url: "https://www.polyu.edu.hk/shtm/",
     },
 ];
+
+const collaboratorUrl = "https://dsai.dufe.edu.cn/content_71197.html";
 
 export default function FooterLinks() {
     const { lang } = useLanguage();
@@ -65,12 +65,17 @@ export default function FooterLinks() {
                         <div className="links-col-title">{copyLabel("linksTeam")}</div>
                         <ul>
                             <li>
-                                <a href="https://hengyunli.github.io" target="_blank" rel="noreferrer noopener">
+                                <a href="https://hengyunli.github.io/index.html" target="_blank" rel="noreferrer noopener">
                                     {copyLabel("labelHost")}
                                 </a>
                             </li>
-                            <li>{copyLabel("labelCollaborator")}</li>
+                            <li>
+                                <a href={collaboratorUrl} target="_blank" rel="noreferrer noopener">
+                                    {copyLabel("labelCollaborator")}
+                                </a>
+                            </li>
                             <li>{copyLabel("labelMembers")}</li>
+                            <li>{copyLabel("labelFunding")}</li>
                         </ul>
                     </div>
 
@@ -92,9 +97,7 @@ export default function FooterLinks() {
                     <div className="links-col">
                         <div className="links-col-title">{copyLabel("linksContact")}</div>
                         <ul>
-                            <li>{copyLabel("contactEmail")}</li>
                             <li>{copyLabel("contactLocation")}</li>
-                            <li>{copyLabel("contactTBD")}</li>
                         </ul>
                     </div>
                 </div>

@@ -1,11 +1,18 @@
 import { withAuth } from "next-auth/middleware";
 
-// Gate everything except the root login screen and Next.js internals
+// Gate app pages while never intercepting static/runtime assets.
 export default withAuth({
     callbacks: {
         authorized: ({ req, token }) => {
+            const path = req.nextUrl.pathname;
+
+            // Never block Next.js runtime/static requests.
+            if (path.startsWith("/_next")) {
+                return true;
+            }
+
             // Allow the root path so users can see the login page
-            if (req.nextUrl.pathname === "/") {
+            if (path === "/") {
                 return true;
             }
 
@@ -19,5 +26,6 @@ export default withAuth({
 });
 
 export const config = {
-    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    // Exclude API, all _next assets, favicon, and direct file requests.
+    matcher: ["/((?!api|_next|favicon.ico|.*\\..*).*)"],
 };

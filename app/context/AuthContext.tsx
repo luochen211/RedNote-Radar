@@ -14,14 +14,14 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    login: (account: string, password: string) => Promise<boolean>;
+    login: (account: string, password: string) => Promise<{ ok: boolean; role?: 'admin' | 'user' }>;
     logout: () => Promise<void>;
     isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
-    login: async () => false,
+    login: async () => ({ ok: false }),
     logout: async () => { },
     isLoading: false,
 });
@@ -29,8 +29,6 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: session, status } = useSession();
     const router = useRouter();
-
-    console.log("AuthProvider session:", session);
 
     const user: User | null = session?.user
         ? {
@@ -42,14 +40,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         : null;
 
-    const login = async (account: string, password: string): Promise<boolean> => {
+    const login = async (account: string, password: string): Promise<{ ok: boolean; role?: 'admin' | 'user' }> => {
         const res = await signIn('credentials', {
             username: account,
             password: password,
             redirect: false,
         });
 
-        return !!res?.ok;
+        if (!res?.ok) {
+            return { ok: false };
+        }
+
+        try {
+            const sessionRes = await fetch('/api/auth/session');
+            const sessionData = await sessionRes.json();
+            const role = (((sessionData?.user as any)?.role || 'USER') as string).toLowerCase() as 'admin' | 'user';
+            return { ok: true, role };
+        } catch {
+            return { ok: true };
+        }
     };
 
     const logout = async () => {

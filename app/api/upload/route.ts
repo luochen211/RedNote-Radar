@@ -2,6 +2,31 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
+
+function getRequestMeta(req: Request) {
+    const ipForwarded = req.headers.get("x-forwarded-for");
+    const ip = ipForwarded?.split(",")[0]?.trim()
+        || req.headers.get("x-real-ip")
+        || "unknown";
+    const country = req.headers.get("x-vercel-ip-country");
+    const city = req.headers.get("x-vercel-ip-city");
+    const location = [country, city].filter(Boolean).join("/") || "unknown";
+    return { ip, location };
+}
+
+async function saveUploadFile(submissionId: string, file: File, key: string) {
+    const uploadDir = path.join("/tmp", "hotel-forecast-uploads", submissionId);
+    await mkdir(uploadDir, { recursive: true });
+
+    const originalExt = path.extname(file.name || "");
+    const ext = originalExt || (file.type.includes("mp4") ? ".mp4" : ".bin");
+    const savePath = path.join(uploadDir, `${key}${ext}`);
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await writeFile(savePath, buffer);
+    return savePath;
+}
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
@@ -11,10 +36,26 @@ export async function POST(req: Request) {
     }
 
     try {
-        const data = await req.json();
+        const formData = await req.formData();
+        const video = formData.get("video");
+        const cover = formData.get("cover");
+        const title = String(formData.get("title") || "").trim();
+        const textContent = String(formData.get("textContent") || "");
+        const rawTags = String(formData.get("tags") || "[]");
+        const followers = Number(formData.get("followers") || 0);
+        const subscribers = Number(formData.get("subscribers") || 0);
+        const likes = Number(formData.get("likes") || 0);
+        const province = String(formData.get("province") || "");
+        let tags: string[] = [];
+
+        try {
+            tags = JSON.parse(rawTags);
+        } catch {
+            tags = [];
+        }
 
         // Basic validation
-        if (!data.video || !data.title) {
+        if (!(video instanceof File) || !title || !province) {
             return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
         }
 
@@ -29,28 +70,58 @@ export async function POST(req: Request) {
         const submission = await prisma.submission.create({
             data: {
                 userId: userId || (await prisma.user.findUnique({ where: { username: session.user.name! } }))!.id,
-                inputData: JSON.stringify(data),
+                inputData: JSON.stringify({
+                    title,
+                    textContent,
+                    tags,
+                    followers,
+                    subscribers,
+                    likes,
+                    province,
+                    videoOriginalName: video.name
+                }),
                 status: "PROCESSING",
             },
         });
 
-        // Log upload action
-        await prisma.usageLog.create({
+        const savedVideoPath = await saveUploadFile(submission.id, video, "video");
+        let savedCoverPath = "";
+        if (cover instanceof File) {
+            savedCoverPath = await saveUploadFile(submission.id, cover, "cover");
+        }
+
+        await prisma.submission.update({
+            where: { id: submission.id },
             data: {
-                userId: submission.userId,
-                action: "UPLOAD",
-                location: "Localhost",
+                inputData: JSON.stringify({
+                    title,
+                    textContent,
+                    tags,
+                    followers,
+                    subscribers,
+                    likes,
+                    province,
+                    videoOriginalName: video.name,
+                    coverOriginalName: cover instanceof File ? cover.name : "",
+                    videoStoredPath: savedVideoPath,
+                    coverStoredPath: savedCoverPath
+                }),
             }
         });
 
-        // Simulate async task (Mock)
-        // In a real scenario, this would push to a queue or external service.
-        // Here we just let it be 'PROCESSING' and the client will poll.
-        // We can simulate a background process updating it after a delay, 
-        // but in serverless, we can't easily fire-and-forget long tasks without a queue.
-        // For this MVP, we might handle it in the polling API or just assume it finishes quickly.
-
-        // Let's create a "Mock" completion in the background if possible, or just rely on the polling endpoint to "fake" progress.
+        // Log upload action
+        const role = (session.user as any).role as string | undefined;
+        if (role !== "ADMIN") {
+            const { ip, location } = getRequestMeta(req);
+            await prisma.usageLog.create({
+                data: {
+                    userId: submission.userId,
+                    action: "UPLOAD_CREATE",
+                    ip,
+                    location,
+                }
+            });
+        }
 
         return NextResponse.json({ id: submission.id, message: "Upload successful" }, { status: 201 });
     } catch (error) {
