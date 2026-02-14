@@ -6,6 +6,9 @@ import { buildPredictionResult } from "@/lib/predictionEngine";
 import { runBottleInference } from "@/lib/bottleModel";
 import { ensureResultCompatibility } from "@/lib/resultCompatibility";
 
+const LOCK_TTL_MS = 10 * 60 * 1000;
+const VIEW_LOG_THROTTLE_MS = 60 * 1000;
+
 function getRequestMeta(req: Request) {
     const ipForwarded = req.headers.get("x-forwarded-for");
     const ip = ipForwarded?.split(",")[0]?.trim()
@@ -15,6 +18,20 @@ function getRequestMeta(req: Request) {
     const city = req.headers.get("x-vercel-ip-city");
     const location = [country, city].filter(Boolean).join("/") || "unknown";
     return { ip, location };
+}
+
+function parseProcessingLock(resultData: string | null) {
+    if (!resultData) return null;
+    try {
+        const parsed = JSON.parse(resultData) as { _processingLock?: { token?: string; startedAt?: string } };
+        const lock = parsed?._processingLock;
+        if (!lock?.startedAt) return null;
+        const startedMs = new Date(lock.startedAt).getTime();
+        if (!Number.isFinite(startedMs)) return null;
+        return { token: String(lock.token || ""), startedMs };
+    } catch {
+        return null;
+    }
 }
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
@@ -39,77 +56,129 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const submission = await prisma.submission.findFirst({
-            where: role === "ADMIN"
-                ? { id }
-                : {
-                    id,
-                    ...ownershipFilter!,
-                },
-        });
+        const submissionWhere = role === "ADMIN"
+            ? { id }
+            : {
+                id,
+                ...ownershipFilter!,
+            };
+
+        const submission = await prisma.submission.findFirst({ where: submissionWhere });
 
         if (!submission) {
             return NextResponse.json({ message: "Task not found" }, { status: 404 });
         }
 
         let currentSubmission = submission;
-        const shouldProcess =
+        const lock = parseProcessingLock(currentSubmission.resultData);
+        const lockExpired = lock ? (Date.now() - lock.startedMs > LOCK_TTL_MS) : false;
+        const shouldAttemptProcess =
             (currentSubmission.status === "PENDING" || currentSubmission.status === "PROCESSING")
-            && !currentSubmission.resultData;
+            && (!currentSubmission.resultData || lockExpired);
 
-        if (shouldProcess) {
-            try {
-                let inputData: Record<string, unknown> = {};
-                try {
-                    inputData = JSON.parse(currentSubmission.inputData || "{}");
-                } catch {
-                    inputData = {};
+        if (shouldAttemptProcess) {
+            const lockPayload = JSON.stringify({
+                _processingLock: {
+                    token: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                    startedAt: new Date().toISOString(),
                 }
+            });
 
-                const analysisBase = await buildPredictionResult(inputData);
-                const modelResult = await runBottleInference(inputData);
-                const result = ensureResultCompatibility({
-                    ...analysisBase,
-                    modelVersion: modelResult.modelVersion,
-                    processedAt: new Date().toISOString(),
-                    engagementScore: {
-                        local: modelResult.engagementScore.local,
-                        global: modelResult.engagementScore.global,
-                    },
-                    testDimensions: modelResult.testDimensions,
-                });
-
-                currentSubmission = await prisma.submission.update({
-                    where: { id: currentSubmission.id },
-                    data: {
-                        status: "COMPLETED",
-                        resultData: JSON.stringify(result),
-                    },
-                });
-            } catch (error) {
-                currentSubmission = await prisma.submission.update({
-                    where: { id: currentSubmission.id },
-                    data: {
-                        status: "FAILED",
-                        resultData: JSON.stringify({
-                            message: "Prediction pipeline failed",
-                            detail: error instanceof Error ? error.message : "Unknown error",
-                        }),
-                    },
-                });
+            const claimWhere: Record<string, unknown> = {
+                id: currentSubmission.id,
+                status: { in: ["PENDING", "PROCESSING"] },
+            };
+            if (!currentSubmission.resultData) {
+                claimWhere.resultData = null;
+            } else if (lockExpired) {
+                claimWhere.resultData = currentSubmission.resultData;
             }
+
+            const claimed = await prisma.submission.updateMany({
+                where: claimWhere as any,
+                data: {
+                    status: "PROCESSING",
+                    resultData: lockPayload,
+                },
+            });
+
+            if (claimed.count === 1) {
+                try {
+                    let inputData: Record<string, unknown> = {};
+                    try {
+                        inputData = JSON.parse(currentSubmission.inputData || "{}");
+                    } catch {
+                        inputData = {};
+                    }
+
+                    const analysisBase = await buildPredictionResult(inputData);
+                    const modelResult = await runBottleInference(inputData);
+                    const result = ensureResultCompatibility({
+                        ...analysisBase,
+                        modelVersion: modelResult.modelVersion,
+                        processedAt: new Date().toISOString(),
+                        engagementScore: {
+                            local: modelResult.engagementScore.local,
+                            global: modelResult.engagementScore.global,
+                        },
+                        testDimensions: modelResult.testDimensions,
+                    });
+
+                    await prisma.submission.updateMany({
+                        where: {
+                            id: currentSubmission.id,
+                            resultData: lockPayload,
+                        },
+                        data: {
+                            status: "COMPLETED",
+                            resultData: JSON.stringify(result),
+                        },
+                    });
+                } catch (error) {
+                    await prisma.submission.updateMany({
+                        where: {
+                            id: currentSubmission.id,
+                            resultData: lockPayload,
+                        },
+                        data: {
+                            status: "FAILED",
+                            resultData: JSON.stringify({
+                                message: "Prediction pipeline failed",
+                                detail: error instanceof Error ? error.message : "Unknown error",
+                            }),
+                        },
+                    });
+                }
+            }
+
+            const latest = await prisma.submission.findFirst({ where: submissionWhere });
+            if (latest) currentSubmission = latest;
         }
 
         if (viewerId && role !== "ADMIN") {
-            const { ip, location } = getRequestMeta(req);
-            await prisma.usageLog.create({
-                data: {
+            const lastView = await prisma.usageLog.findFirst({
+                where: {
                     userId: viewerId,
                     action: "VIEW_TASK_STATUS",
-                    ip,
-                    location,
-                }
+                },
+                orderBy: { timestamp: "desc" },
+                select: { timestamp: true },
             });
+
+            const shouldWriteViewLog = !lastView
+                || (Date.now() - new Date(lastView.timestamp).getTime()) > VIEW_LOG_THROTTLE_MS;
+
+            if (shouldWriteViewLog) {
+                const { ip, location } = getRequestMeta(req);
+                await prisma.usageLog.create({
+                    data: {
+                        userId: viewerId,
+                        action: "VIEW_TASK_STATUS",
+                        ip,
+                        location,
+                    }
+                });
+            }
         }
 
         return NextResponse.json(currentSubmission);

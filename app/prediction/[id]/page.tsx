@@ -74,7 +74,7 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
         };
 
         fetchStatus();
-        intervalRef.current = setInterval(fetchStatus, 2000);
+        intervalRef.current = setInterval(fetchStatus, 4000);
 
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);

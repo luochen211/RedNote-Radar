@@ -7,10 +7,13 @@ import re
 import sys
 import warnings
 import contextlib
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import cv2
+import imageio_ffmpeg
 import numpy as np
 import torch
 import torch.nn as nn
@@ -29,9 +32,11 @@ os.environ.setdefault("HF_HOME", str(ROOT / ".cache/huggingface"))
 os.environ.setdefault("TRANSFORMERS_CACHE", str(ROOT / ".cache/huggingface/transformers"))
 
 sys.path.insert(0, str(MODEL_CODE_ROOT))
+sys.path.insert(0, str(MODEL_CODE_ROOT / "torchvggish"))
 
 from transformers import AutoTokenizer, BertModel  # noqa: E402
 from models.coattention import co_attention  # noqa: E402
+import torchvggish.vggish_input as vggish_input  # noqa: E402
 
 # Suppress prints from optional imports inside models.SVFEND.
 with contextlib.redirect_stdout(io.StringIO()):
@@ -104,6 +109,19 @@ def frame_to_4096(frame_bgr: np.ndarray) -> np.ndarray:
     return feat
 
 
+def normalize_sequence(features: np.ndarray, target_len: int, feature_dim: int) -> np.ndarray:
+    if features.size == 0:
+        return np.zeros((target_len, feature_dim), dtype=np.float32)
+
+    cur_len = int(features.shape[0])
+    if cur_len >= target_len:
+        idx = np.linspace(0, cur_len - 1, num=target_len).astype(int)
+        return features[idx].astype(np.float32)
+
+    pad = np.zeros((target_len - cur_len, feature_dim), dtype=np.float32)
+    return np.concatenate([features.astype(np.float32), pad], axis=0)
+
+
 def sample_video_frames(video_path: str, max_frames: int = 83) -> List[np.ndarray]:
     if not video_path or not Path(video_path).exists():
         return []
@@ -140,15 +158,15 @@ def sample_video_frames(video_path: str, max_frames: int = 83) -> List[np.ndarra
 def build_video_feature(video_path: str, cover_path: str) -> np.ndarray:
     sampled = sample_video_frames(video_path, max_frames=83)
     if sampled:
-        return np.stack(sampled).astype(np.float32)
+        return normalize_sequence(np.stack(sampled).astype(np.float32), target_len=83, feature_dim=4096)
 
     if cover_path and Path(cover_path).exists():
         cover = cv2.imread(cover_path)
         if cover is not None:
             feat = frame_to_4096(cover)
-            return np.stack([feat]).astype(np.float32)
+            return normalize_sequence(np.stack([feat]).astype(np.float32), target_len=83, feature_dim=4096)
 
-    return np.zeros((1, 4096), dtype=np.float32)
+    return np.zeros((83, 4096), dtype=np.float32)
 
 
 def compute_cover_metrics(cover_path: str) -> Tuple[float, float, float]:
@@ -184,9 +202,57 @@ def compute_cover_metrics(cover_path: str) -> Tuple[float, float, float]:
     return img_quality_0_10, aesthetics_0_1, face_num
 
 
-def build_audio_feature() -> np.ndarray:
-    # Fallback: model can run with silent audio tensor.
-    return np.zeros((50, 12288), dtype=np.float32)
+def extract_audio_wav(video_path: str, wav_path: Path) -> bool:
+    if not video_path or not Path(video_path).exists():
+        return False
+    try:
+        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        cmd = [
+            ffmpeg,
+            "-y",
+            "-i",
+            video_path,
+            "-vn",
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-f",
+            "wav",
+            str(wav_path),
+        ]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        return proc.returncode == 0 and wav_path.exists() and wav_path.stat().st_size > 0
+    except Exception:
+        return False
+
+
+def build_audio_feature(video_path: str, model: "BottleInferenceModel") -> np.ndarray:
+    # Fallback path if extraction fails.
+    fallback = np.zeros((50, 12288), dtype=np.float32)
+    if not video_path:
+        return fallback
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="hotel-forecast-audio-") as td:
+            wav_path = Path(td) / "audio.wav"
+            if not extract_audio_wav(video_path, wav_path):
+                return fallback
+
+            examples = vggish_input.wavfile_to_examples(str(wav_path), return_tensor=True)
+            if not isinstance(examples, torch.Tensor) or examples.ndim != 4 or examples.shape[0] == 0:
+                return fallback
+
+            with torch.no_grad():
+                conv = model.vggish_layer.features(examples.float())
+                conv = torch.transpose(conv, 1, 3)
+                conv = torch.transpose(conv, 1, 2)
+                conv = conv.contiguous().view(conv.size(0), -1)
+
+            feats = conv.detach().cpu().numpy().astype(np.float32)
+            return normalize_sequence(feats, target_len=50, feature_dim=12288)
+    except Exception:
+        return fallback
 
 
 class PProcStub(nn.Module):
@@ -393,7 +459,11 @@ def adjust_local(x: float) -> float:
     return float(clamp(x, 0.0, 100.0))
 
 
-def to_tensor_dict(payload: Dict[str, Any], tokenizer: AutoTokenizer) -> Tuple[Dict[str, Tensor], Dict[str, int]]:
+def to_tensor_dict(
+    payload: Dict[str, Any],
+    tokenizer: AutoTokenizer,
+    audio_feature: np.ndarray,
+) -> Tuple[Dict[str, Tensor], Dict[str, int]]:
     title = str(payload.get("title") or "").strip()
     text_content = str(payload.get("textContent") or "").strip()
     tags = parse_tags(payload.get("tags"))
@@ -410,7 +480,6 @@ def to_tensor_dict(payload: Dict[str, Any], tokenizer: AutoTokenizer) -> Tuple[D
     video_path = str(payload.get("videoStoredPath") or "")
     cover_path = str(payload.get("coverStoredPath") or "")
     video_feature = build_video_feature(video_path, cover_path)
-    audio_feature = build_audio_feature()
 
     title_tokens = tokenize(title)
     text_tokens = tokenize(text_content)
@@ -475,15 +544,64 @@ def load_model(args: Dict[str, Any]) -> BottleInferenceModel:
     return model
 
 
-def predict_single(model: BottleInferenceModel, batch: Dict[str, Tensor], checkpoint: Path) -> float:
+def load_checkpoint_strict(model: BottleInferenceModel, checkpoint: Path) -> None:
     state = torch.load(checkpoint, map_location="cpu")
-    model.load_state_dict(state, strict=False)
-    with torch.no_grad():
-        out = model(**batch)
-    return float(out.view(-1).item())
+    missing, unexpected = model.load_state_dict(state, strict=False)
+    if missing or unexpected:
+        raise RuntimeError(
+            f"Checkpoint mismatch for {checkpoint.name}; missing={len(missing)}, unexpected={len(unexpected)}"
+        )
 
 
-def main() -> None:
+class InferenceRuntime:
+    def __init__(self) -> None:
+        if not CHECKPOINT_ALL.exists() or not CHECKPOINT_ICON.exists():
+            raise FileNotFoundError("Model checkpoint file is missing.")
+        if not BERT_DIR.exists():
+            raise FileNotFoundError("BERT directory is missing.")
+
+        self.tokenizer = AutoTokenizer.from_pretrained(str(BERT_DIR), local_files_only=True)
+        args = default_args()
+
+        self.model_global = load_model(args)
+        self.model_local = load_model(args)
+
+        load_checkpoint_strict(self.model_global, CHECKPOINT_ALL)
+        load_checkpoint_strict(self.model_local, CHECKPOINT_ICON)
+
+        self.model_global.eval()
+        self.model_local.eval()
+
+    def infer(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        video_path = str(payload.get("videoStoredPath") or "")
+        audio_feature = build_audio_feature(video_path, self.model_global)
+        batch, input_dims = to_tensor_dict(payload, self.tokenizer, audio_feature)
+
+        with torch.no_grad():
+            raw_global = float(self.model_global(**batch).view(-1).item())
+            raw_local = float(self.model_local(**batch).view(-1).item())
+
+        return {
+            "modelVersion": "bottle-checkpoint-v2",
+            "engagementScore": {
+                "local": int(round(adjust_local(raw_local))),
+                "global": int(round(adjust_global(raw_global))),
+            },
+            "raw": {
+                "local": raw_local,
+                "global": raw_global,
+            },
+            "testDimensions": {
+                "input": input_dims,
+                "output": {
+                    "rawLocal": raw_local,
+                    "rawGlobal": raw_global,
+                },
+            },
+        }
+
+
+def run_once() -> None:
     if not CHECKPOINT_ALL.exists() or not CHECKPOINT_ICON.exists():
         raise FileNotFoundError("Model checkpoint file is missing.")
     if not BERT_DIR.exists():
@@ -494,38 +612,41 @@ def main() -> None:
         raise ValueError("Expected JSON payload from stdin.")
     payload = json.loads(raw)
 
-    tokenizer = AutoTokenizer.from_pretrained(str(BERT_DIR), local_files_only=True)
-    args = default_args()
-    model = load_model(args)
-    batch, input_dims = to_tensor_dict(payload, tokenizer)
-
-    raw_global = predict_single(model, batch, CHECKPOINT_ALL)
-    raw_local = predict_single(model, batch, CHECKPOINT_ICON)
-
-    result = {
-        "modelVersion": "bottle-checkpoint-v1",
-        "engagementScore": {
-            "local": int(round(adjust_local(raw_local))),
-            "global": int(round(adjust_global(raw_global))),
-        },
-        "raw": {
-            "local": raw_local,
-            "global": raw_global,
-        },
-        "testDimensions": {
-            "input": input_dims,
-            "output": {
-                "rawLocal": raw_local,
-                "rawGlobal": raw_global,
-            },
-        },
-    }
+    runtime = InferenceRuntime()
+    result = runtime.infer(payload)
     sys.stdout.write(json.dumps(result, ensure_ascii=False))
+
+
+def serve() -> None:
+    runtime = InferenceRuntime()
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+
+        request_id = ""
+        try:
+            message = json.loads(line)
+            request_id = str(message.get("requestId") or "")
+            payload = message.get("payload")
+            if not isinstance(payload, dict):
+                raise ValueError("payload must be an object")
+
+            result = runtime.infer(payload)
+            out = {"requestId": request_id, "ok": True, "result": result}
+        except Exception as exc:
+            out = {"requestId": request_id, "ok": False, "error": str(exc)}
+
+        sys.stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
+        sys.stdout.flush()
 
 
 if __name__ == "__main__":
     try:
-        main()
+        if "--serve" in sys.argv:
+            serve()
+        else:
+            run_once()
     except Exception as exc:
         err = {"error": str(exc)}
         sys.stdout.write(json.dumps(err, ensure_ascii=False))
