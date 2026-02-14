@@ -393,7 +393,7 @@ def adjust_local(x: float) -> float:
     return float(clamp(x, 0.0, 100.0))
 
 
-def to_tensor_dict(payload: Dict[str, Any], tokenizer: AutoTokenizer) -> Dict[str, Tensor]:
+def to_tensor_dict(payload: Dict[str, Any], tokenizer: AutoTokenizer) -> Tuple[Dict[str, Tensor], Dict[str, int]]:
     title = str(payload.get("title") or "").strip()
     text_content = str(payload.get("textContent") or "").strip()
     tags = parse_tags(payload.get("tags"))
@@ -459,7 +459,14 @@ def to_tensor_dict(payload: Dict[str, Any], tokenizer: AutoTokenizer) -> Dict[st
             "imgaesthetics": 1.0,
         },
     }
-    return data
+    dimensions = {
+        "textTokens": int(data["txt_inputid"].shape[-1]),
+        "videoFrames": int(data["video_feature"].shape[1]),
+        "videoFeatureDim": int(data["video_feature"].shape[2]),
+        "audioFrames": int(data["audio_feature"].shape[1]),
+        "audioFeatureDim": int(data["audio_feature"].shape[2]),
+    }
+    return data, dimensions
 
 
 def load_model(args: Dict[str, Any]) -> BottleInferenceModel:
@@ -490,7 +497,7 @@ def main() -> None:
     tokenizer = AutoTokenizer.from_pretrained(str(BERT_DIR), local_files_only=True)
     args = default_args()
     model = load_model(args)
-    batch = to_tensor_dict(payload, tokenizer)
+    batch, input_dims = to_tensor_dict(payload, tokenizer)
 
     raw_global = predict_single(model, batch, CHECKPOINT_ALL)
     raw_local = predict_single(model, batch, CHECKPOINT_ICON)
@@ -504,6 +511,13 @@ def main() -> None:
         "raw": {
             "local": raw_local,
             "global": raw_global,
+        },
+        "testDimensions": {
+            "input": input_dims,
+            "output": {
+                "rawLocal": raw_local,
+                "rawGlobal": raw_global,
+            },
         },
     }
     sys.stdout.write(json.dumps(result, ensure_ascii=False))

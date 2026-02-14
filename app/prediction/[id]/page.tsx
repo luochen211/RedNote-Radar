@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { ensureResultCompatibility } from "@/lib/resultCompatibility";
 
 const copy = {
     en: {
@@ -53,7 +54,7 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                 const data = await res.json();
 
                 if (data.status === 'COMPLETED' && data.resultData) {
-                    const result = JSON.parse(data.resultData);
+                    const result = ensureResultCompatibility(JSON.parse(data.resultData));
 
                     if (intervalRef.current) clearInterval(intervalRef.current);
 

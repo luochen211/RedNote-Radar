@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { buildPredictionResult } from "@/lib/predictionEngine";
 import { runBottleInference } from "@/lib/bottleModel";
+import { ensureResultCompatibility } from "@/lib/resultCompatibility";
 
 function getRequestMeta(req: Request) {
     const ipForwarded = req.headers.get("x-forwarded-for");
@@ -67,7 +68,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
                 const analysisBase = await buildPredictionResult(inputData);
                 const modelResult = await runBottleInference(inputData);
-                const result = {
+                const result = ensureResultCompatibility({
                     ...analysisBase,
                     modelVersion: modelResult.modelVersion,
                     processedAt: new Date().toISOString(),
@@ -75,7 +76,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                         local: modelResult.engagementScore.local,
                         global: modelResult.engagementScore.global,
                     },
-                };
+                    testDimensions: modelResult.testDimensions,
+                });
 
                 currentSubmission = await prisma.submission.update({
                     where: { id: currentSubmission.id },

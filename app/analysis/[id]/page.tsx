@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
+import { ensureResultCompatibility } from "@/lib/resultCompatibility";
 
 const TOOLTIPS = {
     en: {
@@ -447,7 +448,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 if (res.ok) {
                     const json = await res.json();
                     if (json.status === 'COMPLETED' && json.resultData) {
-                        const result = JSON.parse(json.resultData);
+                        const result = ensureResultCompatibility(JSON.parse(json.resultData));
                         setData(result.analysis);
                         setScores(result.engagementScore);
                         setLoading(false);

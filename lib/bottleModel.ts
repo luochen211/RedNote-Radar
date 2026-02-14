@@ -11,6 +11,19 @@ export interface BottleModelOutput {
         local?: number;
         global?: number;
     };
+    testDimensions?: {
+        input?: {
+            textTokens?: number;
+            videoFrames?: number;
+            videoFeatureDim?: number;
+            audioFrames?: number;
+            audioFeatureDim?: number;
+        };
+        output?: {
+            rawLocal?: number | null;
+            rawGlobal?: number | null;
+        };
+    };
 }
 
 function clampScore(value: unknown) {
@@ -80,6 +93,7 @@ export async function runBottleInference(input: Record<string, unknown>): Promis
                 modelVersion,
                 engagementScore: { local, global },
                 raw: parsed?.raw,
+                testDimensions: parsed?.testDimensions,
             });
         });
 
