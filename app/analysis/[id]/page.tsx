@@ -65,6 +65,7 @@ const copy = {
         tabSentiment: "Content sentiment scores",
         tabConsistency: "Content consistency scores",
         tabOriental: "Oriental Aesthetics Score",
+        tabTesting: "Model test dimensions",
         headerBalance: "Aesthetics Balance",
         headerStyle: "Cultural Style",
         norm: "Normalized (0-100)",
@@ -92,6 +93,13 @@ const copy = {
         lblOriental: "Oriental",
         lblWestern: "Western",
         lblControlModern: "Control_Modern_Norm",
+        lblTextTokens: "Text tokens",
+        lblVideoFrames: "Video frames",
+        lblVideoDim: "Video feature dim",
+        lblAudioFrames: "Audio frames",
+        lblAudioDim: "Audio feature dim",
+        lblRawLocal: "Raw local output",
+        lblRawGlobal: "Raw global output",
         localTitle: "Engagement score prediction (Local scope)",
         localDesc: "Based on the like count range from Hotel Icon's own historical data, this refers to the prediction of the probability that the video content will achieve a high level of engagement relative to its Hotel Icon's performance history.",
         localLabel: "Local scope:",
@@ -105,6 +113,7 @@ const copy = {
         tabSentiment: "内容情感评分",
         tabConsistency: "内容一致性评分",
         tabOriental: "东方美学评分",
+        tabTesting: "模型测试维度",
         headerBalance: "美学平衡",
         headerStyle: "文化风格",
         norm: "归一化 (0-100)",
@@ -132,6 +141,13 @@ const copy = {
         lblOriental: "东方",
         lblWestern: "西方",
         lblControlModern: "现代规范控制",
+        lblTextTokens: "文本Token长度",
+        lblVideoFrames: "视频帧数",
+        lblVideoDim: "视频特征维度",
+        lblAudioFrames: "音频帧数",
+        lblAudioDim: "音频特征维度",
+        lblRawLocal: "本号原始输出",
+        lblRawGlobal: "全网原始输出",
         localTitle: "互动指数预测（本号范围）",
         localDesc: "基于唯港荟现有历史数据的点赞数范围，指该视频内容相对于唯港荟历史表现，能够获得高互动的概率预测。",
         localLabel: "本号范围：",
@@ -416,12 +432,13 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     const t = copy[lang];
     const tooltips = TOOLTIPS[lang];
 
-    const [activeTab, setActiveTab] = useState<"quality" | "sentiment" | "consistency" | "oriental">("quality");
+    const [activeTab, setActiveTab] = useState<"quality" | "sentiment" | "consistency" | "oriental" | "testing">("quality");
     const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null); // Analysis data
     const [scores, setScores] = useState<any>(null); // Prediction scores
+    const [testDims, setTestDims] = useState<any>(null);
     const router = useRouter();
 
     const toHundredScale = (value: number) => {
@@ -451,6 +468,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                         const result = ensureResultCompatibility(JSON.parse(json.resultData));
                         setData(result.analysis);
                         setScores(result.engagementScore);
+                        setTestDims(result.testDimensions || null);
                         setLoading(false);
                     } else if (json.status === 'PROCESSING' || json.status === 'PENDING') {
                         // But if refreshed, might need to re-poll?
@@ -690,6 +708,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 <button className={`ghost-button ${activeTab === 'sentiment' ? 'active' : ''}`} onClick={() => setActiveTab('sentiment')}>{t.tabSentiment}</button>
                 <button className={`ghost-button ${activeTab === 'consistency' ? 'active' : ''}`} onClick={() => setActiveTab('consistency')}>{t.tabConsistency}</button>
                 <button className={`ghost-button ${activeTab === 'oriental' ? 'active' : ''}`} onClick={() => setActiveTab('oriental')}>{t.tabOriental}</button>
+                <button className={`ghost-button ${activeTab === 'testing' ? 'active' : ''}`} onClick={() => setActiveTab('testing')}>{t.tabTesting}</button>
             </div>
 
             <section className="analysis-section glass app-section app-section-lg fade-up delay-1" style={{ minHeight: 500 }}>
@@ -764,6 +783,18 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                             />
                             <div className="muted tiny" style={{ marginTop: 10 }}>{t.norm}</div>
                         </div>
+                    </div>
+                )}
+
+                {activeTab === 'testing' && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center' }}>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblTextTokens} value={testDims?.input?.textTokens ?? 0} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblVideoFrames} value={testDims?.input?.videoFrames ?? 0} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblVideoDim} value={testDims?.input?.videoFeatureDim ?? 0} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblAudioFrames} value={testDims?.input?.audioFrames ?? 0} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblAudioDim} value={testDims?.input?.audioFeatureDim ?? 0} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblRawLocal} value={Number(testDims?.output?.rawLocal ?? 0).toFixed(4)} /></div>
+                        <div style={{ flex: '1 1 220px', maxWidth: 300 }}><MetricCard label={t.lblRawGlobal} value={Number(testDims?.output?.rawGlobal ?? 0).toFixed(4)} /></div>
                     </div>
                 )}
             </section>
