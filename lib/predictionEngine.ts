@@ -160,7 +160,7 @@ function normalizeLikeValue(value: unknown): number | null {
 function tokenize(text: string): string[] {
     const tokens = text
         .toLowerCase()
-        .match(/[\p{L}\p{N}\u4e00-\u9fa5]+/gu);
+        .match(/[a-z0-9\u4e00-\u9fa5]+/g);
     return tokens ?? [];
 }
 
@@ -173,10 +173,10 @@ function jaccard(a: string[], b: string[]) {
     const setA = new Set(a);
     const setB = new Set(b);
     let inter = 0;
-    for (const item of setA) {
+    for (const item of Array.from(setA)) {
         if (setB.has(item)) inter += 1;
     }
-    const union = new Set([...setA, ...setB]).size;
+    const union = new Set(a.concat(b)).size;
     return union === 0 ? 0 : inter / union;
 }
 
