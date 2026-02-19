@@ -1,5 +1,6 @@
 import { readFile, stat } from "fs/promises";
 import path from "path";
+import { getGlobalBenchmarkFiles, getLocalBenchmarkFiles } from "@/lib/modelAssetPaths";
 
 interface SubmissionInput {
     title?: string;
@@ -62,17 +63,8 @@ interface PredictionResult {
 
 let benchmarkCache: Benchmarks | null = null;
 
-const GLOBAL_BENCHMARK_FILES = [
-    path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/zyj_exceltojason/xiaohongshu_.json"),
-    path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/zyj_exceltojason/xiaohongshu.json"),
-    path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/zyj_exceltojason/xhs.json"),
-];
-
-const LOCAL_BENCHMARK_FILES = [
-    path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/szz_featureextraction/icon_data_all.json"),
-    path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/szz_featureextraction/icon_data_1.json"),
-    path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/zyj_exceltojason/icon_data_feature.json"),
-];
+const GLOBAL_BENCHMARK_FILES = getGlobalBenchmarkFiles();
+const LOCAL_BENCHMARK_FILES = getLocalBenchmarkFiles();
 
 const POSITIVE_WORDS = [
     "luxury", "elegant", "premium", "amazing", "beautiful", "great", "excellent", "best",

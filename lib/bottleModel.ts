@@ -1,6 +1,12 @@
-import path from "path";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
 import { existsSync } from "fs";
+import {
+    getBertDir,
+    getCheckpointPaths,
+    getModelAssetsConfigHint,
+    getModelAssetsDirCandidates,
+    getModelScriptPath,
+} from "@/lib/modelAssetPaths";
 
 export interface BottleModelOutput {
     modelVersion: string;
@@ -47,11 +53,10 @@ const pendingRequests = new Map<string, PendingRequest>();
 let runtimeCheckDone = false;
 let runtimeUnavailableReason: string | null = null;
 
-const SCRIPT_PATH = path.join(process.cwd(), "scripts", "bottle_infer.py");
-const WEIGHT_ROOT = path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/weight");
-const CHECKPOINT_ALL = path.join(WEIGHT_ROOT, "code/checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_all29_bs1.pth");
-const CHECKPOINT_ICON = path.join(WEIGHT_ROOT, "code/checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_icon0_bs1_new.pth");
-const BERT_DIR = path.join(WEIGHT_ROOT, "bert");
+const SCRIPT_PATH = getModelScriptPath();
+const CHECKPOINTS = getCheckpointPaths();
+const BERT_DIR = getBertDir();
+const ASSET_CANDIDATES = getModelAssetsDirCandidates();
 
 function clampScore(value: unknown) {
     const n = typeof value === "number" ? value : Number(value);
@@ -67,16 +72,16 @@ function getRuntimeUnavailableReason() {
         runtimeUnavailableReason = `missing script file: ${SCRIPT_PATH}`;
         return runtimeUnavailableReason;
     }
-    if (!existsSync(CHECKPOINT_ALL)) {
-        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINT_ALL}`;
+    if (!existsSync(CHECKPOINTS.all)) {
+        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINTS.all}; searched assets roots=${ASSET_CANDIDATES.join(", ")}`;
         return runtimeUnavailableReason;
     }
-    if (!existsSync(CHECKPOINT_ICON)) {
-        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINT_ICON}`;
+    if (!existsSync(CHECKPOINTS.icon)) {
+        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINTS.icon}; searched assets roots=${ASSET_CANDIDATES.join(", ")}`;
         return runtimeUnavailableReason;
     }
     if (!existsSync(BERT_DIR)) {
-        runtimeUnavailableReason = `missing bert directory: ${BERT_DIR}`;
+        runtimeUnavailableReason = `missing bert directory: ${BERT_DIR}; ${getModelAssetsConfigHint()}`;
         return runtimeUnavailableReason;
     }
 

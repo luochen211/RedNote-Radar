@@ -99,6 +99,32 @@ The system utilizes a 5-module model to predict user engagement:
 
     Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## 🤖 Model Assets
+
+Model assets are resolved in this order:
+
+1. `MODEL_ASSETS_DIR` (if set)
+2. `model_assets/` (recommended)
+3. `网页代码/1.预测页代码与部分分析页代码/` (legacy fallback)
+
+Recommended layout:
+
+```text
+model_assets/
+  weight/
+    bert/
+    code/checkpoints/XIAOHONGSHU/BOTTLE/
+  benchmarks/
+    global_likes.json
+    local_likes.json
+```
+
+Example configuration:
+
+```bash
+export MODEL_ASSETS_DIR=/absolute/path/to/model_assets
+```
+
 ## 📄 License
 
 This project is private and proprietary.

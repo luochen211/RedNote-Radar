@@ -42,3 +42,10 @@ next-env.d.ts
 
 # Temporary files
 ~$*
+
+# Model assets (large local artifacts)
+网页代码/
+model_assets/weight/
+model_assets/benchmarks/*.json
+model_assets/zyj_exceltojason/
+model_assets/szz_featureextraction/

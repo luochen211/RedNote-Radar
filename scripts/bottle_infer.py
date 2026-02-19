@@ -23,8 +23,42 @@ warnings.filterwarnings("ignore")
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL_CODE_ROOT = ROOT / "网页代码/1.预测页代码与部分分析页代码/weight/code"
-BERT_DIR = ROOT / "网页代码/1.预测页代码与部分分析页代码/weight/bert"
+STANDARD_ASSETS_ROOT = ROOT / "model_assets"
+LEGACY_ASSETS_ROOT = ROOT / "网页代码/1.预测页代码与部分分析页代码"
+
+
+def _resolve_assets_root() -> Path:
+    env_value = os.getenv("MODEL_ASSETS_DIR", "").strip()
+    candidates: List[Path] = []
+    if env_value:
+        env_path = Path(env_value)
+        if not env_path.is_absolute():
+            env_path = ROOT / env_path
+        candidates.append(env_path)
+    candidates.extend([STANDARD_ASSETS_ROOT, LEGACY_ASSETS_ROOT])
+
+    seen = set()
+    unique_candidates: List[Path] = []
+    for item in candidates:
+        item_str = str(item)
+        if item_str in seen:
+            continue
+        seen.add(item_str)
+        unique_candidates.append(item)
+
+    for item in unique_candidates:
+        if (item / "weight/code").exists() and (item / "weight/bert").exists():
+            return item
+
+    for item in unique_candidates:
+        if item.exists():
+            return item
+    return unique_candidates[0]
+
+
+ASSETS_ROOT = _resolve_assets_root()
+MODEL_CODE_ROOT = ASSETS_ROOT / "weight/code"
+BERT_DIR = ASSETS_ROOT / "weight/bert"
 CHECKPOINT_ALL = MODEL_CODE_ROOT / "checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_all29_bs1.pth"
 CHECKPOINT_ICON = MODEL_CODE_ROOT / "checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_icon0_bs1_new.pth"
 
