@@ -50,13 +50,10 @@ let worker: ChildProcessWithoutNullStreams | null = null;
 let stdoutBuffer = "";
 let requestSeq = 0;
 const pendingRequests = new Map<string, PendingRequest>();
-let runtimeCheckDone = false;
-let runtimeUnavailableReason: string | null = null;
 
 const SCRIPT_PATH = getModelScriptPath();
 const CHECKPOINTS = getCheckpointPaths();
 const BERT_DIR = getBertDir();
-const ASSET_CANDIDATES = getModelAssetsDirCandidates();
 
 function clampScore(value: unknown) {
     const n = typeof value === "number" ? value : Number(value);
@@ -65,28 +62,22 @@ function clampScore(value: unknown) {
 }
 
 function getRuntimeUnavailableReason() {
-    if (runtimeCheckDone) return runtimeUnavailableReason;
-    runtimeCheckDone = true;
+    const assetCandidates = getModelAssetsDirCandidates();
 
     if (!existsSync(SCRIPT_PATH)) {
-        runtimeUnavailableReason = `missing script file: ${SCRIPT_PATH}`;
-        return runtimeUnavailableReason;
+        return `missing script file: ${SCRIPT_PATH}`;
     }
     if (!existsSync(CHECKPOINTS.all)) {
-        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINTS.all}; searched assets roots=${ASSET_CANDIDATES.join(", ")}`;
-        return runtimeUnavailableReason;
+        return `missing model checkpoint: ${CHECKPOINTS.all}; searched assets roots=${assetCandidates.join(", ")}`;
     }
     if (!existsSync(CHECKPOINTS.icon)) {
-        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINTS.icon}; searched assets roots=${ASSET_CANDIDATES.join(", ")}`;
-        return runtimeUnavailableReason;
+        return `missing model checkpoint: ${CHECKPOINTS.icon}; searched assets roots=${assetCandidates.join(", ")}`;
     }
     if (!existsSync(BERT_DIR)) {
-        runtimeUnavailableReason = `missing bert directory: ${BERT_DIR}; ${getModelAssetsConfigHint()}`;
-        return runtimeUnavailableReason;
+        return `missing bert directory: ${BERT_DIR}; ${getModelAssetsConfigHint()}`;
     }
 
-    runtimeUnavailableReason = null;
-    return runtimeUnavailableReason;
+    return null;
 }
 
 function resetWorker(reason: string) {

@@ -5,13 +5,19 @@ const MODEL_ASSETS_ENV = "MODEL_ASSETS_DIR";
 const STANDARD_ASSETS_REL = "model_assets";
 const LEGACY_ASSETS_REL = "网页代码/1.预测页代码与部分分析页代码";
 
-function hasAssetMarkers(candidate: string) {
+function hasBenchmarkMarkers(candidate: string) {
     return [
-        path.join(candidate, "weight"),
         path.join(candidate, "benchmarks"),
         path.join(candidate, "zyj_exceltojason"),
         path.join(candidate, "szz_featureextraction"),
     ].some((item) => existsSync(item));
+}
+
+function hasModelRuntimeMarkers(candidate: string) {
+    return (
+        existsSync(path.join(candidate, "weight", "code"))
+        && existsSync(path.join(candidate, "weight", "bert"))
+    );
 }
 
 function toAbsolutePath(rawPath: string) {
@@ -31,13 +37,20 @@ export function getModelAssetsDirCandidates() {
 
 export function resolveModelAssetsDir() {
     const candidates = getModelAssetsDirCandidates();
-    const existing = candidates.find((candidate) => existsSync(candidate) && hasAssetMarkers(candidate));
+    const existing = candidates.find((candidate) => existsSync(candidate) && hasModelRuntimeMarkers(candidate));
     if (existing) return existing;
 
     const fallbackExisting = candidates.find((candidate) => existsSync(candidate));
     if (fallbackExisting) return fallbackExisting;
 
     return candidates[0];
+}
+
+export function resolveModelAssetsDirForBenchmarks() {
+    const candidates = getModelAssetsDirCandidates();
+    const existing = candidates.find((candidate) => existsSync(candidate) && hasBenchmarkMarkers(candidate));
+    if (existing) return existing;
+    return resolveModelAssetsDir();
 }
 
 export function getModelScriptPath() {
@@ -65,7 +78,7 @@ export function getCheckpointPaths() {
 }
 
 export function getGlobalBenchmarkFiles() {
-    const assetsRoot = resolveModelAssetsDir();
+    const assetsRoot = resolveModelAssetsDirForBenchmarks();
     return [
         path.join(assetsRoot, "benchmarks/global_likes.json"),
         path.join(assetsRoot, "zyj_exceltojason/xiaohongshu_.json"),
@@ -75,7 +88,7 @@ export function getGlobalBenchmarkFiles() {
 }
 
 export function getLocalBenchmarkFiles() {
-    const assetsRoot = resolveModelAssetsDir();
+    const assetsRoot = resolveModelAssetsDirForBenchmarks();
     return [
         path.join(assetsRoot, "benchmarks/local_likes.json"),
         path.join(assetsRoot, "szz_featureextraction/icon_data_all.json"),
