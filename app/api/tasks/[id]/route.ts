@@ -112,17 +112,30 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                     }
 
                     const analysisBase = await buildPredictionResult(inputData);
-                    const modelResult = await runBottleInference(inputData);
-                    const result = ensureResultCompatibility({
-                        ...analysisBase,
-                        modelVersion: modelResult.modelVersion,
-                        processedAt: new Date().toISOString(),
-                        engagementScore: {
-                            local: modelResult.engagementScore.local,
-                            global: modelResult.engagementScore.global,
-                        },
-                        testDimensions: modelResult.testDimensions,
-                    });
+                    let mergedResult: Record<string, unknown> = analysisBase as unknown as Record<string, unknown>;
+
+                    try {
+                        const modelResult = await runBottleInference(inputData);
+                        mergedResult = {
+                            ...analysisBase,
+                            modelVersion: modelResult.modelVersion,
+                            processedAt: new Date().toISOString(),
+                            engagementScore: {
+                                local: modelResult.engagementScore.local,
+                                global: modelResult.engagementScore.global,
+                            },
+                            testDimensions: modelResult.testDimensions,
+                        };
+                    } catch {
+                        // Graceful degradation: keep deterministic analysis output when model runtime is unavailable.
+                        mergedResult = {
+                            ...analysisBase,
+                            modelVersion: `${analysisBase.modelVersion}-fallback`,
+                            processedAt: new Date().toISOString(),
+                        };
+                    }
+
+                    const result = ensureResultCompatibility(mergedResult);
 
                     await prisma.submission.updateMany({
                         where: {

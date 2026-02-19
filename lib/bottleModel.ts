@@ -1,5 +1,6 @@
 import path from "path";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
+import { existsSync } from "fs";
 
 export interface BottleModelOutput {
     modelVersion: string;
@@ -43,11 +44,44 @@ let worker: ChildProcessWithoutNullStreams | null = null;
 let stdoutBuffer = "";
 let requestSeq = 0;
 const pendingRequests = new Map<string, PendingRequest>();
+let runtimeCheckDone = false;
+let runtimeUnavailableReason: string | null = null;
+
+const SCRIPT_PATH = path.join(process.cwd(), "scripts", "bottle_infer.py");
+const WEIGHT_ROOT = path.join(process.cwd(), "网页代码/1.预测页代码与部分分析页代码/weight");
+const CHECKPOINT_ALL = path.join(WEIGHT_ROOT, "code/checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_all29_bs1.pth");
+const CHECKPOINT_ICON = path.join(WEIGHT_ROOT, "code/checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_icon0_bs1_new.pth");
+const BERT_DIR = path.join(WEIGHT_ROOT, "bert");
 
 function clampScore(value: unknown) {
     const n = typeof value === "number" ? value : Number(value);
     if (!Number.isFinite(n)) return 0;
     return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function getRuntimeUnavailableReason() {
+    if (runtimeCheckDone) return runtimeUnavailableReason;
+    runtimeCheckDone = true;
+
+    if (!existsSync(SCRIPT_PATH)) {
+        runtimeUnavailableReason = `missing script file: ${SCRIPT_PATH}`;
+        return runtimeUnavailableReason;
+    }
+    if (!existsSync(CHECKPOINT_ALL)) {
+        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINT_ALL}`;
+        return runtimeUnavailableReason;
+    }
+    if (!existsSync(CHECKPOINT_ICON)) {
+        runtimeUnavailableReason = `missing model checkpoint: ${CHECKPOINT_ICON}`;
+        return runtimeUnavailableReason;
+    }
+    if (!existsSync(BERT_DIR)) {
+        runtimeUnavailableReason = `missing bert directory: ${BERT_DIR}`;
+        return runtimeUnavailableReason;
+    }
+
+    runtimeUnavailableReason = null;
+    return runtimeUnavailableReason;
 }
 
 function resetWorker(reason: string) {
@@ -103,10 +137,14 @@ function handleWorkerLine(line: string) {
 }
 
 function ensureWorker(): ChildProcessWithoutNullStreams {
+    const unavailableReason = getRuntimeUnavailableReason();
+    if (unavailableReason) {
+        throw new Error(`Bottle model runtime unavailable: ${unavailableReason}`);
+    }
+
     if (worker && !worker.killed) return worker;
 
-    const scriptPath = path.join(process.cwd(), "scripts", "bottle_infer.py");
-    worker = spawn("python3", [scriptPath, "--serve"], {
+    worker = spawn("python3", [SCRIPT_PATH, "--serve"], {
         cwd: process.cwd(),
         env: {
             ...process.env,

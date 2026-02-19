@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { ensureResultCompatibility } from "@/lib/resultCompatibility";
 
@@ -61,6 +60,9 @@ const TOOLTIPS = {
 const copy = {
     en: {
         loading: "Loading Analysis...",
+        errorFetch: "Error fetching task",
+        errorNotFound: "Task not found",
+        errorFailed: "Prediction failed",
         tabQuality: "Content quality scores",
         tabSentiment: "Content sentiment scores",
         tabConsistency: "Content consistency scores",
@@ -109,6 +111,9 @@ const copy = {
     },
     zh: {
         loading: "正在加载分析结果...",
+        errorFetch: "获取任务失败",
+        errorNotFound: "任务未找到",
+        errorFailed: "预测失败",
         tabQuality: "内容质量评分",
         tabSentiment: "内容情感评分",
         tabConsistency: "内容一致性评分",
@@ -436,10 +441,11 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [data, setData] = useState<any>(null); // Analysis data
     const [scores, setScores] = useState<any>(null); // Prediction scores
     const [testDims, setTestDims] = useState<any>(null);
-    const router = useRouter();
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const toHundredScale = (value: number) => {
         const num = Number(value);
@@ -459,28 +465,65 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     };
 
     useEffect(() => {
+        const stopPolling = () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+
         const fetchData = async () => {
             try {
                 const res = await fetch(`/api/tasks/${params.id}`);
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.status === 'COMPLETED' && json.resultData) {
-                        const result = ensureResultCompatibility(JSON.parse(json.resultData));
-                        setData(result.analysis);
-                        setScores(result.engagementScore);
-                        setTestDims(result.testDimensions || null);
-                        setLoading(false);
-                    } else if (json.status === 'PROCESSING' || json.status === 'PENDING') {
-                        // But if refreshed, might need to re-poll?
-                        // Let's assume completed for simplicity or simple polling
-                    }
+                if (!res.ok) {
+                    setError(res.status === 404 ? t.errorNotFound : t.errorFetch);
+                    setLoading(false);
+                    stopPolling();
+                    return;
                 }
+
+                const json = await res.json();
+                if (json.status === 'COMPLETED' && json.resultData) {
+                    const result = ensureResultCompatibility(JSON.parse(json.resultData));
+                    setData(result.analysis);
+                    setScores(result.engagementScore);
+                    setTestDims(result.testDimensions || null);
+                    setError("");
+                    setLoading(false);
+                    stopPolling();
+                    return;
+                }
+
+                if (json.status === 'FAILED') {
+                    setError(t.errorFailed);
+                    setLoading(false);
+                    stopPolling();
+                    return;
+                }
+
+                if (json.status === 'PROCESSING' || json.status === 'PENDING') {
+                    setLoading(true);
+                    return;
+                }
+
+                setError(t.errorFetch);
+                setLoading(false);
+                stopPolling();
             } catch (e) {
                 console.error(e);
+                setError(t.errorFetch);
+                setLoading(false);
+                stopPolling();
             }
         };
+
         fetchData();
-    }, [params.id]);
+        intervalRef.current = setInterval(fetchData, 4000);
+
+        return () => {
+            stopPolling();
+        };
+    }, [params.id, t.errorFailed, t.errorFetch, t.errorNotFound]);
 
 
     // Enhanced Metric Card (Tech HUD Style)
@@ -617,6 +660,16 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
             </div>
         );
     };
+
+    if (error) {
+        return (
+            <div className="page app-page" style={{ position: 'relative' }}>
+                <div className="loader" style={{ textAlign: 'center', padding: '100px 0' }}>
+                    <p className="muted" style={{ marginTop: 24, color: 'var(--muted)' }}>{error}</p>
+                </div>
+            </div>
+        )
+    }
 
     if (loading || !data) {
         return (
