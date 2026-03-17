@@ -17,15 +17,19 @@ const copy = {
         clickUploadCover: "Upload cover",
         supportCover: "Supported formats: JPG, PNG",
         labelTitle: "Title",
-        placeholderTitle: "Enter video title",
+        placeholderTitle: "Enter a Chinese or English title",
         labelText: "Text content",
         placeholderText: "Enter video description...",
         labelTags: "Tags",
         placeholderTag: "Tag",
-        labelFollowers: "Number of hotel followers",
-        labelSubscribers: "Number of hotel subscribers",
-        labelLikes: "Number of hotel likes",
+        labelFollowers: "Account follower count",
+        labelSubscribers: "Account following count",
+        labelLikes: "Account total likes and bookmarks",
+        labelProvince: "Hotel province / region",
+        placeholderProvince: "Select province or region",
         btnSubmit: "Submit",
+        loadingTitle: "Preparing submission...",
+        loadingSteps: ["Uploading media...", "Extracting cover frame...", "Creating task..."],
     },
     zh: {
         alertTitle: "请输入标题",
@@ -38,17 +42,83 @@ const copy = {
         clickUploadCover: "上传封面",
         supportCover: "支持格式：JPG, PNG",
         labelTitle: "标题",
-        placeholderTitle: "输入视频标题",
+        placeholderTitle: "输入中英文视频标题",
         labelText: "文本内容",
         placeholderText: "输入视频描述...",
         labelTags: "标签",
         placeholderTag: "标签",
         labelFollowers: "酒店粉丝数",
         labelSubscribers: "酒店订阅数",
-        labelLikes: "酒店点赞数",
+        labelLikes: "酒店获赞与收藏数",
+        labelProvince: "酒店所在省份 / 地区",
+        placeholderProvince: "选择省份或地区",
         btnSubmit: "提交",
+        loadingTitle: "正在创建任务...",
+        loadingSteps: ["上传视频中...", "生成封面预览...", "写入分析任务..."],
     }
 };
+
+const provinceOptions = [
+    "北京", "天津", "上海", "重庆", "河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江",
+    "安徽", "福建", "江西", "山东", "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州",
+    "云南", "陕西", "甘肃", "青海", "内蒙古", "广西", "西藏", "宁夏", "新疆", "香港", "澳门", "台湾"
+];
+
+async function generateVideoFramePreview(file: File) {
+    const objectUrl = URL.createObjectURL(file);
+
+    try {
+        const preview = await new Promise<string | null>((resolve) => {
+            const video = document.createElement("video");
+            video.preload = "metadata";
+            video.muted = true;
+            video.playsInline = true;
+            video.src = objectUrl;
+
+            const cleanup = () => {
+                video.remove();
+            };
+
+            const renderFrame = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 360;
+                const ctx = canvas.getContext("2d");
+
+                if (!ctx) {
+                    cleanup();
+                    resolve(null);
+                    return;
+                }
+
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL("image/png");
+                cleanup();
+                resolve(dataUrl);
+            };
+
+            video.onloadedmetadata = () => {
+                if (!Number.isFinite(video.duration) || video.duration <= 0.1) {
+                    requestAnimationFrame(renderFrame);
+                    return;
+                }
+
+                const seekTime = Math.min(Math.max(video.duration * 0.05, 0.05), Math.max(video.duration - 0.05, 0.05));
+                video.currentTime = seekTime;
+            };
+
+            video.onseeked = renderFrame;
+            video.onerror = () => {
+                cleanup();
+                resolve(null);
+            };
+        });
+
+        return preview;
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+}
 
 export default function UploadPage() {
     const router = useRouter();
@@ -67,16 +137,30 @@ export default function UploadPage() {
     const [followers, setFollowers] = useState("");
     const [subscribers, setSubscribers] = useState("");
     const [likes, setLikes] = useState("");
+    const [province, setProvince] = useState("");
 
     // File names for display
     const [videoName, setVideoName] = useState("");
     const [coverName, setCoverName] = useState("");
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [coverFile, setCoverFile] = useState<File | null>(null);
+    const [defaultCoverPreview, setDefaultCoverPreview] = useState<string | null>(null);
 
-    const handleVideoSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const applyVideoFile = async (file: File) => {
+        setVideoName(file.name);
+        setVideoFile(file);
+        setIsDraggingVideo(false);
+
+        if (!coverFile) {
+            const preview = await generateVideoFramePreview(file);
+            setDefaultCoverPreview(preview);
+        }
+    };
+
+    const handleVideoSelect = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setVideoName(file.name);
-            setIsDraggingVideo(false);
+            await applyVideoFile(file);
         }
     };
 
@@ -84,15 +168,17 @@ export default function UploadPage() {
         const file = event.target.files?.[0];
         if (file) {
             setCoverName(file.name);
+            setCoverFile(file);
             setIsDraggingCover(false);
+            setDefaultCoverPreview(null);
         }
     };
 
-    const handleVideoDrop = (event: DragEvent<HTMLDivElement>) => {
+    const handleVideoDrop = async (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         const file = event.dataTransfer?.files?.[0];
         if (file) {
-            setVideoName(file.name);
+            await applyVideoFile(file);
         }
         setIsDraggingVideo(false);
     };
@@ -102,6 +188,7 @@ export default function UploadPage() {
         const file = event.dataTransfer?.files?.[0];
         if (file) {
             setCoverName(file.name);
+            setCoverFile(file);
         }
         setIsDraggingCover(false);
     };
@@ -125,21 +212,34 @@ export default function UploadPage() {
         setIsProcessing(true);
 
         try {
-            const payload = {
-                title,
-                textContent: content,
-                tags,
-                followers: Number(followers) || 0,
-                subscribers: Number(subscribers) || 0,
-                likes: Number(likes) || 0,
-                video: videoName || "mock_video.mp4",
-                cover: coverName || "mock_cover.jpg"
-            };
+            if (!videoFile) {
+                alert(t.supportVideo);
+                setIsProcessing(false);
+                return;
+            }
+
+            const payload = new FormData();
+            payload.append("title", title);
+            payload.append("textContent", content);
+            payload.append("tags", JSON.stringify(tags.filter(tag => tag.trim())));
+            payload.append("followers", String(Number(followers) || 0));
+            payload.append("subscribers", String(Number(subscribers) || 0));
+            payload.append("likes", String(Number(likes) || 0));
+            if (!province) {
+                alert(t.placeholderProvince);
+                setIsProcessing(false);
+                return;
+            }
+
+            payload.append("video", videoFile);
+            if (coverFile) {
+                payload.append("cover", coverFile);
+            }
+            payload.append("province", province);
 
             const res = await fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: payload,
             });
 
             if (!res.ok) throw new Error("Upload failed");
@@ -155,12 +255,24 @@ export default function UploadPage() {
     };
 
     return (
-        <div className="page">
+        <div className="page workspace-page workspace-inverse workspace-soft">
             <Navbar />
 
+            {isProcessing && (
+                <div className="workspace-loading-overlay">
+                    <div className="workspace-loading-card">
+                        <div className="spinner"></div>
+                        <h3>{t.loadingTitle}</h3>
+                        <div className="workspace-loading-steps">
+                            {t.loadingSteps.map((step) => (
+                                <span key={step}>{step}</span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
-
-            <section className="upload-section glass fade-up delay-1" style={{ padding: 32, marginTop: 32 }}>
+            <section className="upload-section glass fade-up delay-1 workspace-panel" style={{ padding: 32, marginTop: 32 }}>
                 <div className="section-head" style={{ marginBottom: 32 }}>
                     <h3>{t.pageTitle}</h3>
                 </div>
@@ -170,13 +282,11 @@ export default function UploadPage() {
                     <div className="stack">
                         <label className="muted">{t.labelVideo}</label>
                         <div
-                            className="upload-box"
+                            className={`upload-box workspace-upload-box ${isDraggingVideo ? 'is-dragging' : ''}`}
                             style={{
-                                border: `1px dashed ${isDraggingVideo ? 'rgba(106,227,255,0.8)' : 'rgba(255,255,255,0.2)'}`,
                                 borderRadius: 8,
                                 padding: '40px 20px',
                                 textAlign: 'center',
-                                background: isDraggingVideo ? 'rgba(106,227,255,0.08)' : 'rgba(255,255,255,0.02)',
                                 cursor: 'pointer'
                             }}
                             onClick={() => videoInputRef.current?.click()}
@@ -184,10 +294,10 @@ export default function UploadPage() {
                             onDragLeave={() => setIsDraggingVideo(false)}
                             onDrop={handleVideoDrop}
                         >
-                            <div style={{ fontWeight: 600, color: '#e8f0ff', marginBottom: 8 }}>{t.clickUploadVideo}</div>
+                            <div style={{ fontWeight: 600, marginBottom: 8 }}>{t.clickUploadVideo}</div>
                             <div className="muted tiny">{t.supportVideo}</div>
 
-                            {videoName && <div style={{ color: '#6ae3ff', marginTop: 12 }}>{videoName}</div>}
+                            {videoName && <div className="workspace-file-name" style={{ marginTop: 12 }}>{videoName}</div>}
                         </div>
                         <input
                             ref={videoInputRef}
@@ -202,13 +312,11 @@ export default function UploadPage() {
                     <div className="stack">
                         <label className="muted">{t.labelCover}</label>
                         <div
-                            className="upload-box"
+                            className={`upload-box workspace-upload-box ${isDraggingCover ? 'is-dragging' : ''}`}
                             style={{
-                                border: `1px dashed ${isDraggingCover ? 'rgba(106,227,255,0.8)' : 'rgba(255,255,255,0.2)'}`,
                                 borderRadius: 8,
                                 padding: '40px 20px',
                                 textAlign: 'center',
-                                background: isDraggingCover ? 'rgba(106,227,255,0.08)' : 'rgba(255,255,255,0.02)',
                                 cursor: 'pointer'
                             }}
                             onClick={() => coverInputRef.current?.click()}
@@ -216,10 +324,36 @@ export default function UploadPage() {
                             onDragLeave={() => setIsDraggingCover(false)}
                             onDrop={handleCoverDrop}
                         >
-                            <div style={{ fontWeight: 600, color: '#e8f0ff', marginBottom: 8 }}>{t.clickUploadCover}</div>
-                            <div className="muted tiny">{t.supportCover}</div>
-
-                            {coverName && <div style={{ color: '#6ae3ff', marginTop: 12 }}>{coverName}</div>}
+                            {coverName ? (
+                                <>
+                                    <div style={{ fontWeight: 600, marginBottom: 8 }}>{t.clickUploadCover}</div>
+                                    <div className="muted tiny">{t.supportCover}</div>
+                                    <div className="workspace-file-name" style={{ marginTop: 12 }}>{coverName}</div>
+                                </>
+                            ) : defaultCoverPreview ? (
+                                <div style={{ display: 'grid', gap: 10, justifyItems: 'center' }}>
+                                    <img
+                                        src={defaultCoverPreview}
+                                        alt="Default cover preview"
+                                        style={{
+                                            width: '100%',
+                                            maxWidth: 260,
+                                            maxHeight: 260,
+                                            objectFit: 'contain',
+                                            borderRadius: 10,
+                                            border: '1px solid rgba(15,23,42,0.12)'
+                                        }}
+                                    />
+                                    <div className="muted tiny">
+                                        {lang === 'en' ? 'Using the first video frame as default cover' : '未上传封面时将使用视频第一帧'}
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div style={{ fontWeight: 600, marginBottom: 8 }}>{t.clickUploadCover}</div>
+                                    <div className="muted tiny">{t.supportCover}</div>
+                                </>
+                            )}
                         </div>
                         <input
                             ref={coverInputRef}
@@ -243,10 +377,7 @@ export default function UploadPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: 8,
-                                color: '#fff'
                             }}
                         />
                     </div>
@@ -263,10 +394,7 @@ export default function UploadPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: 8,
-                                color: '#fff'
                             }}
                         />
                     </div>
@@ -285,28 +413,25 @@ export default function UploadPage() {
                                     style={{
                                         width: 120,
                                         padding: '8px 12px',
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid rgba(255,255,255,0.1)',
                                         borderRadius: 6,
-                                        color: '#fff',
                                         fontSize: 14
                                     }}
                                 />
                             ))}
                             <button
                                 onClick={handleAddTag}
-                                style={{
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: 6,
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    background: 'transparent',
-                                    color: '#fff',
-                                    cursor: 'pointer',
-                                    fontSize: 18
-                                }}
-                            >
-                                +
+                                    style={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: 6,
+                                        border: '1px solid rgba(140, 198, 255, 0.18)',
+                                        background: 'rgba(122, 166, 255, 0.14)',
+                                        color: '#eaf2ff',
+                                        cursor: 'pointer',
+                                        fontSize: 18
+                                    }}
+                                >
+                                    +
                             </button>
                         </div>
                     </div>
@@ -322,10 +447,7 @@ export default function UploadPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: 8,
-                                color: '#fff'
                             }}
                         />
                     </div>
@@ -341,10 +463,7 @@ export default function UploadPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: 8,
-                                color: '#fff'
                             }}
                         />
                     </div>
@@ -360,12 +479,24 @@ export default function UploadPage() {
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
                                 borderRadius: 8,
-                                color: '#fff'
                             }}
                         />
+                    </div>
+
+                    <div className="stack">
+                        <label className="muted">{t.labelProvince}</label>
+                        <select
+                            className="input-field"
+                            value={province}
+                            onChange={(e) => setProvince(e.target.value)}
+                            style={{ width: '100%', padding: '12px', borderRadius: 8 }}
+                        >
+                            <option value="">{t.placeholderProvince}</option>
+                            {provinceOptions.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
                     </div>
 
                 </div>

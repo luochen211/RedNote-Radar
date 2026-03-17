@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { buildActualResult } from "@/lib/actualAnalysis";
+import { isAdminRole } from "@/lib/roles";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);
@@ -20,63 +22,48 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ message: "Task not found" }, { status: 404 });
         }
 
-        // Checking if user owns this submission
-        // (Optional: Admin can view all)
-        // const userId = (session.user as any).id; 
-        // if (submission.userId !== userId && (session.user as any).role !== 'admin') ...
+        const sessionUserId = (session.user as any).id as string | undefined;
+        const sessionUsername = session.user?.name;
+        const resolvedUser =
+            sessionUserId && !sessionUserId.startsWith("quick-")
+                ? await prisma.user.findUnique({ where: { id: sessionUserId } })
+                : sessionUsername
+                    ? await prisma.user.findUnique({ where: { username: sessionUsername } })
+                    : null;
+        const currentUserId = resolvedUser?.id ?? sessionUserId;
+        const currentRole = (session.user as any).role;
+        if (submission.userId !== currentUserId && !isAdminRole(currentRole)) {
+            return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
 
-        // MOCK PROCESSING LOGIC
-        // If status is PROCESSING, checks time. If > 10 seconds have passed, mark as COMPLETED.
         if (submission.status === 'PROCESSING') {
             const timeDiff = Date.now() - new Date(submission.createdAt).getTime();
 
-            if (timeDiff > 10000) { // 10 seconds mock delay
-                // Generate mock result
-                const mockResult = {
-                    engagementScore: { local: Math.floor(Math.random() * 20) + 80, global: Math.floor(Math.random() * 30) + 60 },
-                    analysis: {
-                        quality: {
-                            aesthetic: (Math.random() * 20 + 80).toFixed(1),
-                            readability: (Math.random() * 10 + 85).toFixed(1),
-                            coverQuality: (Math.random() * 15 + 80).toFixed(1),
-                            coverAesthetic: (Math.random() * 20 + 70).toFixed(1),
-                            voice: Math.random() > 0.5 ? "Yes" : "No",
-                            face: Math.random() > 0.5 ? "Yes" : "No"
-                        },
-                        sentiment: {
-                            title: Math.floor(Math.random() * 30 + 70) + "%",
-                            text: Math.floor(Math.random() * 30 + 70) + "%",
-                            textArousal: Math.floor(Math.random() * 40 + 50) + "%",
-                            audio: Math.floor(Math.random() * 20 + 80) + "%",
-                            audioArousal: Math.floor(Math.random() * 30 + 60) + "%"
-                        },
-                        consistency: {
-                            titleTags: Math.floor(Math.random() * 10 + 90) + "%",
-                            titleCover: Math.floor(Math.random() * 20 + 80) + "%",
-                            titleVideo: Math.floor(Math.random() * 15 + 85) + "%",
-                            textAudio: Math.floor(Math.random() * 20 + 75) + "%",
-                            textVideo: Math.floor(Math.random() * 10 + 88) + "%",
-                            videoAudio: Math.floor(Math.random() * 10 + 90) + "%"
-                        },
-                        orientalAesthetics: {
-                            richness: Number((Math.random() * 0.4 + 0.6).toFixed(2)),
-                            harmony: Number((Math.random() * 0.3 + 0.7).toFixed(2)),
-                            adaption: Number((Math.random() * 0.2 + 0.8).toFixed(2)),
-                            modern: Number((Math.random() * 0.3 + 0.6).toFixed(2)),
-                            oriental: Number((Math.random() * 0.2 + 0.8).toFixed(2)),
-                            western: Number((Math.random() * 0.4 + 0.4).toFixed(2))
+            if (timeDiff > 1000) {
+                const inputData = JSON.parse(submission.inputData);
+                try {
+                    const result = await buildActualResult(inputData);
+                    const updated = await prisma.submission.update({
+                        where: { id },
+                        data: {
+                            status: 'COMPLETED',
+                            resultData: JSON.stringify(result)
                         }
-                    }
-                };
-
-                const updated = await prisma.submission.update({
-                    where: { id },
-                    data: {
-                        status: 'COMPLETED',
-                        resultData: JSON.stringify(mockResult)
-                    }
-                });
-                return NextResponse.json(updated);
+                    });
+                    return NextResponse.json(updated);
+                } catch (error) {
+                    console.error("Task processing failed:", error);
+                    const failed = await prisma.submission.update({
+                        where: { id },
+                        data: {
+                            status: 'FAILED',
+                            resultData: JSON.stringify({
+                                error: "Analysis failed"
+                            })
+                        }
+                    });
+                    return NextResponse.json(failed);
+                }
             }
         }
 

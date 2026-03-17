@@ -8,6 +8,8 @@
 
 # Next.js
 /.next/
+/.next.bad.*/
+/.next.bak-*/
 /out/
 
 # Production
@@ -41,3 +43,15 @@ next-env.d.ts
 
 # Temporary files
 ~$*
+
+# Local reference materials
+/1.预测页代码与部分分析页代码/
+/2.东方色彩美学与文化倾向(6个指标代码及其demo)/
+/3.其他剩余的分析页数值特征代码/
+/extracted_web/
+/Hotel Video InsightHub - 前端 UI 重构交接文档.docx
+/网页开发需求整合V6.docx
+/网页开发需求整合V7.docx
+
+# Local uploads
+/public/uploads/

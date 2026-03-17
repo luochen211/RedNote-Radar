@@ -4,24 +4,24 @@ import { useLanguage } from "../context/LanguageContext";
 
 const copy = {
     en: {
-        linksTitle: "Advisors & partner links",
-        linksSubtitle: "Stay aligned with our advisors and partners",
-        linksAdvisors: "Advisors",
+        linksTitle: "Acknowledgements & links",
+        linksSubtitle: "Project advisors, partner brands and contact channels",
+        linksAdvisors: "Academic advisors",
         linksPartners: "Partners",
         linksContact: "Contact",
         contactEmail: "Email: info@insighthub.ai",
         contactLocation: "Location: Hong Kong · PolyU SHTM",
-        contactTBD: "WeChat / Xiaohongshu / TikTok links TBD",
+        contactTBD: "Social channels: WeChat / Xiaohongshu / TikTok",
     },
     zh: {
-        linksTitle: "指导与合作链接",
-        linksSubtitle: "与我们的顾问和合作伙伴保持联系",
-        linksAdvisors: "顾问团队",
+        linksTitle: "鸣谢与合作链接",
+        linksSubtitle: "项目顾问、合作酒店与联系方式",
+        linksAdvisors: "学术顾问",
         linksPartners: "合作伙伴",
         linksContact: "联系我们",
         contactEmail: "邮箱: info@insighthub.ai",
         contactLocation: "地址: 香港 · 香港理工大学酒店及旅游业管理学院",
-        contactTBD: "微信 / 小红书 / 抖音 链接待定",
+        contactTBD: "社交渠道: 微信 / 小红书 / 抖音",
     },
 };
 

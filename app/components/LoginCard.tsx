@@ -4,10 +4,12 @@ import { useState, useRef, useEffect, FormEvent } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
+import { isAdminRole } from "@/lib/roles";
 
 const copy = {
     en: {
         loginTitle: "User Login",
+        adminTitle: "Admin Login",
         account: "Account",
         password: "Password",
         loginButton: "Sign in",
@@ -16,9 +18,13 @@ const copy = {
         welcomeTitle: "Welcome Back",
         goToWorkspace: "Go to Workspace",
         loggedInAs: "Logged in as",
+        modeHintUser: "For hotel operation accounts",
+        modeHintAdmin: "For platform administration accounts",
+        requestAccess: "Request access",
     },
     zh: {
         loginTitle: "用户登录",
+        adminTitle: "管理员登录",
         account: "账号",
         password: "密码",
         loginButton: "登录",
@@ -27,15 +33,22 @@ const copy = {
         welcomeTitle: "欢迎回来",
         goToWorkspace: "进入工作台",
         loggedInAs: "当前登录",
+        modeHintUser: "酒店运营账号入口",
+        modeHintAdmin: "平台管理账号入口",
+        requestAccess: "申请注册",
     },
 };
 
 const regCopy = {
     en: {
         title: "Request access",
-        subtitle: "Submit your email and a short password to generate a demo login.",
+        subtitle: "Submit your hotel info to create a regular user account.",
         email: "Email",
         placeholder_email: "you@example.com",
+        hotelName: "Hotel name",
+        placeholder_hotel: "Hotel ICON",
+        employeeId: "Employee ID",
+        placeholder_employee: "Staff number",
         password: "Password",
         placeholder_pwd: "At least 6 characters",
         confirm: "Confirm password",
@@ -52,9 +65,13 @@ const regCopy = {
     },
     zh: {
         title: "申请访问",
-        subtitle: "提交邮箱和密码生成演示账号。",
+        subtitle: "提交酒店信息后创建普通用户账号。",
         email: "邮箱",
         placeholder_email: "you@example.com",
+        hotelName: "酒店名称",
+        placeholder_hotel: "Hotel ICON",
+        employeeId: "员工编号",
+        placeholder_employee: "员工编号",
         password: "密码",
         placeholder_pwd: "至少 6 位字符",
         confirm: "确认密码",
@@ -132,7 +149,8 @@ export default function LoginCard() {
 
     // Register State
     const [isRegistering, setIsRegistering] = useState(false);
-    const [regForm, setRegForm] = useState({ email: '', password: '', confirm: '', captchaInput: '' });
+    const [loginMode, setLoginMode] = useState<"user" | "admin">("user");
+    const [regForm, setRegForm] = useState({ email: '', hotelName: '', employeeId: '', password: '', confirm: '', captchaInput: '' });
     const [captchaToken, setCaptchaToken] = useState('');
     const [regError, setRegError] = useState('');
     const [regSuccess, setRegSuccess] = useState(false);
@@ -146,12 +164,7 @@ export default function LoginCard() {
 
         const success = await login(form.account, form.password);
         if (success) {
-            // Check if admin login (Role is handled in AuthContext/NextAuth)
-            if (form.account.toLowerCase().includes('admin')) {
-                router.push('/admin');
-            } else {
-                router.push('/upload');
-            }
+            router.push('/upload');
         } else {
             setMessage(lang === "en" ? "Invalid credentials" : "账号或密码错误");
         }
@@ -173,7 +186,7 @@ export default function LoginCard() {
                     
                     <button 
                         className="primary-button" 
-                        onClick={() => router.push(user.role === 'admin' ? '/admin' : '/upload')}
+                        onClick={() => router.push(isAdminRole(user.role) ? '/admin' : '/upload')}
                         style={{ marginBottom: 16 }}
                     >
                         {copyLabel("goToWorkspace")}
@@ -190,8 +203,24 @@ export default function LoginCard() {
             {!isRegistering ? (
                 <>
                     <div className="card-head">
-                        <div className="pill">{copyLabel("loginTitle")}</div>
-                        <div className="caption">{lang === "en" ? "Login" : "登录"}</div>
+                        <div className="pill">{loginMode === "admin" ? copyLabel("adminTitle") : copyLabel("loginTitle")}</div>
+                        <div className="caption">{loginMode === "admin" ? t.modeHintAdmin : t.modeHintUser}</div>
+                    </div>
+                    <div className="login-mode-switch">
+                        <button
+                            type="button"
+                            className={`mode-pill ${loginMode === "user" ? "active" : ""}`}
+                            onClick={() => setLoginMode("user")}
+                        >
+                            {copyLabel("loginTitle")}
+                        </button>
+                        <button
+                            type="button"
+                            className={`mode-pill ${loginMode === "admin" ? "active" : ""}`}
+                            onClick={() => setLoginMode("admin")}
+                        >
+                            {copyLabel("adminTitle")}
+                        </button>
                     </div>
                     <form className="form" onSubmit={handleSubmit}>
                         <label>
@@ -203,7 +232,7 @@ export default function LoginCard() {
                                 onChange={(e) =>
                                     setForm((prev) => ({ ...prev, account: e.target.value }))
                                 }
-                                placeholder="hotel_account@example.com"
+                                placeholder={loginMode === "admin" ? "admin@example.com" : "hotel_account@example.com"}
                             />
                         </label>
                         <label>
@@ -231,10 +260,10 @@ export default function LoginCard() {
                                 setIsRegistering(true);
                                 setRegSuccess(false);
                                 setRegError('');
-                                setRegForm({ email: '', password: '', confirm: '', captchaInput: '' });
+                                setRegForm({ email: '', hotelName: '', employeeId: '', password: '', confirm: '', captchaInput: '' });
                             }}
                         >
-                            {lang === "en" ? "Request access" : "申请注册"}
+                            {t.requestAccess}
                         </button>
                     </div>
                 </>
@@ -259,7 +288,7 @@ export default function LoginCard() {
                             e.preventDefault();
                             setRegError('');
 
-                            if (!regForm.email || !regForm.password || !regForm.confirm || !regForm.captchaInput) {
+                            if (!regForm.email || !regForm.hotelName || !regForm.employeeId || !regForm.password || !regForm.confirm || !regForm.captchaInput) {
                                 setRegError(tr.err_fill);
                                 return;
                             }
@@ -276,7 +305,12 @@ export default function LoginCard() {
                                 const res = await fetch('/api/register', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ email: regForm.email, password: regForm.password }),
+                                    body: JSON.stringify({
+                                        email: regForm.email,
+                                        hotelName: regForm.hotelName,
+                                        employeeId: regForm.employeeId,
+                                        password: regForm.password
+                                    }),
                                 });
 
                                 const data = await res.json();
@@ -295,6 +329,26 @@ export default function LoginCard() {
                                     placeholder={tr.placeholder_email}
                                     value={regForm.email}
                                     onChange={e => setRegForm({ ...regForm, email: e.target.value })}
+                                />
+                            </label>
+
+                            <label>
+                                <span>{tr.hotelName}</span>
+                                <input
+                                    type="text"
+                                    placeholder={tr.placeholder_hotel}
+                                    value={regForm.hotelName}
+                                    onChange={e => setRegForm({ ...regForm, hotelName: e.target.value })}
+                                />
+                            </label>
+
+                            <label>
+                                <span>{tr.employeeId}</span>
+                                <input
+                                    type="text"
+                                    placeholder={tr.placeholder_employee}
+                                    value={regForm.employeeId}
+                                    onChange={e => setRegForm({ ...regForm, employeeId: e.target.value })}
                                 />
                             </label>
 

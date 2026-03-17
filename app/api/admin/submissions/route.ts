@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { isAdminRole } from "@/lib/roles";
+import { removeSubmissionUploads } from "@/lib/submissions";
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || !isAdminRole((session.user as any).role)) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -18,7 +20,7 @@ export async function GET(req: Request) {
 
 export async function DELETE(req: Request) {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || !isAdminRole((session.user as any).role)) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,5 +30,6 @@ export async function DELETE(req: Request) {
     if (!id) return NextResponse.json({ message: "ID required" }, { status: 400 });
 
     await prisma.submission.delete({ where: { id } });
+    await removeSubmissionUploads(id);
     return NextResponse.json({ message: "Deleted" });
 }

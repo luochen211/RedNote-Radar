@@ -3,10 +3,11 @@
 import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { isAdminRole } from '@/lib/roles';
 
 interface User {
     account: string;
-    role: 'admin' | 'user';
+    role: 'ADMIN' | 'USER';
     name: string;
     loginTime: string;
     id?: string;
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const user: User | null = session?.user ? {
         account: session.user.name || "",
-        role: (session.user as any).role || "user",
+        role: isAdminRole((session.user as any).role) ? "ADMIN" : "USER",
         name: session.user.name || "",
         loginTime: new Date().toISOString(), // Mock, or from session if available
         id: (session.user as any).id,

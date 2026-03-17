@@ -5,31 +5,27 @@ import { useLanguage } from "../context/LanguageContext";
 const copy = {
     en: {
         brand: "Hotel Video InsightHub",
-        heroTitle:
-            "Video-based Social Media Marketing Analysis and Effectiveness Prediction",
         heroLead:
-            "Video-based social media has become a transformative marketing force, dynamically reshaping consumer experiences through its multimodal nature (visual, audio, textual). This model can accurately analyze video social media content and predict its marketing effectiveness, providing support for strategy optimization and research on consumer cognition and behavior.",
-        subLead:
-            "Built for Hotel Icon and future sub-systems; ready for local vs. industry benchmarks.",
-        scrollCta: "Scroll to explore",
+            "A multilingual analysis workspace for hotel short videos. Upload video, cover, title and copy to receive engagement prediction, sentiment analysis, consistency diagnostics and Eastern aesthetics insights.",
+        subLead: "Designed for hospitality teams that need a cleaner demo surface than a research prototype.",
+        scrollCta: "View system overview",
         quickFacts: [
-            "Spatiotemporal encoders (VGG, VGGish, BERT)",
-            "Audio-text and text-video cross-attention",
-            "Adaptive fusion with user attention factors",
-            "Engagement scores for local & global scopes"
+            "Chinese and English titles are both supported",
+            "Local and global engagement prediction",
+            "Cross-modal analysis with structured cards",
+            "Submission history for later comparison"
         ],
     },
     zh: {
-        brand: "酒店短视频智算台",
-        heroTitle: "面向短视频的社交媒体营销分析与效果预测",
-        heroLead: "短视频社交媒体已成为一股变革性的营销力量，通过其多模态特性（视觉、听觉、文本）重塑消费者体验。本模型能够精准分析视频社媒内容并预测其营销效果，为策略优化及消费者认知行为研究提供有力支持。",
-        subLead: "兼容 Hotel Icon 与未来子系统，支持本地与行业对比基准。",
-        scrollCta: "下滑查看详情",
+        brand: "酒店短视频智算平台",
+        heroLead: "系统支持中英文标题与文本输入，围绕上传的视频、封面、标题和正文内容，输出互动预测、情感与激活度分析、跨模态一致性诊断以及东方美学相关结果。",
+        subLead: "界面将研究型原型整理成更适合汇报、演示和后续商用展示的科技化工作台。",
+        scrollCta: "查看系统介绍",
         quickFacts: [
-            "时空编码器（VGG、VGGish、BERT）",
-            "音频-文本、文本-视频跨模态注意力",
-            "自适应融合 + 用户注意因子",
-            "本地与全局范围互动分数"
+            "支持中英文标题输入",
+            "预测页展示本号与全网双范围分数",
+            "分析页展示多模态诊断指标",
+            "历史页沉淀全部提交记录"
         ],
     },
 };
@@ -40,19 +36,36 @@ export default function Hero() {
 
     return (
         <div className="hero-copy">
-            <div className="pill accent">{t.heroTitle}</div>
+            <div className="doc-kicker">{lang === "en" ? "AI Analysis Platform" : "AI 智算平台"}</div>
             <h1>{t.brand}</h1>
-            <p className="lead">{t.heroLead}</p>
-            <p className="lead muted">{t.subLead}</p>
-            <div className="quick-grid">
-                {t.quickFacts.map((fact) => (
+            <div className="doc-abstract landing-abstract">
+                <div className="doc-abstract-label">{lang === "en" ? "Platform Intro" : "平台简介"}</div>
+                <p className="lead">{t.heroLead}</p>
+                {t.subLead ? <p className="lead muted">{t.subLead}</p> : null}
+            </div>
+            <div className="quick-grid doc-fact-list">
+                {t.quickFacts.map((fact, index) => (
                     <div key={fact} className="chip">
-                        {fact}
+                        <span className="doc-fact-index">{String(index + 1).padStart(2, "0")}</span>
+                        <span>{fact}</span>
                     </div>
                 ))}
             </div>
-            <a className="scroll-hint" href="#overview">
-                <span>↓</span>
+            <div className="landing-stat-row">
+                <div className="landing-stat-card">
+                    <span>{lang === "en" ? "Upload inputs" : "上传输入"}</span>
+                    <strong>9+</strong>
+                </div>
+                <div className="landing-stat-card">
+                    <span>{lang === "en" ? "Analysis groups" : "分析模块"}</span>
+                    <strong>4</strong>
+                </div>
+                <div className="landing-stat-card">
+                    <span>{lang === "en" ? "Scopes" : "预测范围"}</span>
+                    <strong>2</strong>
+                </div>
+            </div>
+            <a className="scroll-hint landing-link" href="/overview">
                 {t.scrollCta}
             </a>
         </div>

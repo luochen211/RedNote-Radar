@@ -5,7 +5,7 @@ import SessionProvider from "./components/SessionProvider";
 import { ReactNode } from "react";
 
 export const metadata = {
-  title: "Hotel Video InsightHub",
+  title: "酒店短视频智算台",
   description:
     "Video-based Social Media Marketing Analysis and Effectiveness Prediction for Hotel Icon and industry benchmarks.",
 };
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>

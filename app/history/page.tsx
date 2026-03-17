@@ -19,6 +19,8 @@ const copy = {
         loading: "Loading...",
         noHistory: "No history found.",
         untitled: "Untitled",
+        viewPrediction: "Prediction",
+        viewAnalysis: "Analysis",
         status: {
             COMPLETED: "COMPLETED",
             FAILED: "FAILED",
@@ -31,6 +33,8 @@ const copy = {
         loading: "加载中...",
         noHistory: "暂无历史记录。",
         untitled: "未命名",
+        viewPrediction: "预测详情",
+        viewAnalysis: "分析详情",
         status: {
             COMPLETED: "已完成",
             FAILED: "失败",
@@ -70,9 +74,9 @@ export default function HistoryPage() {
     }, []);
 
     return (
-        <div className="page">
+        <div className="page workspace-page workspace-inverse workspace-soft">
             <Navbar />
-            <section className="glass fade-up" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
+            <section className="glass fade-up workspace-panel" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
                 <h3>{t.pageTitle}</h3>
 
                 {loading ? (
@@ -83,34 +87,40 @@ export default function HistoryPage() {
                         {history.map(item => {
                             const input = JSON.parse(item.inputData);
                             return (
-                                <Link
-                                    href={item.status === 'COMPLETED' ? `/analysis/${item.id}` : `/prediction/${item.id}`} // Assuming logic
+                                <div
                                     key={item.id}
-                                    style={{ textDecoration: 'none' }}
-                                >
-                                    <div className="upload-box" style={{
+                                    className="upload-box workspace-history-card"
+                                    style={{
                                         padding: 20,
                                         borderRadius: 8,
-                                        background: 'rgba(255,255,255,0.05)',
                                         display: 'flex',
                                         justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <div>
-                                            <div style={{ fontWeight: 600, color: '#fff' }}>{input.title || t.untitled}</div>
-                                            <div className="muted tiny">{new Date(item.createdAt).toLocaleString()}</div>
-                                        </div>
-                                        <div style={{
+                                        alignItems: 'center',
+                                        gap: 20
+                                    }}
+                                >
+                                    <div>
+                                        <div style={{ fontWeight: 600, color: 'var(--text)' }}>{input.title || t.untitled}</div>
+                                        <div className="muted tiny">{new Date(item.createdAt).toLocaleString()}</div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                                        <div className={`workspace-status-chip ${item.status === 'COMPLETED' ? 'is-success' : item.status === 'FAILED' ? 'is-failed' : 'is-pending'}`} style={{
                                             padding: '4px 12px',
                                             borderRadius: 20,
                                             fontSize: 12,
-                                            background: item.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(250, 204, 21, 0.2)',
-                                            color: item.status === 'COMPLETED' ? '#4ade80' : '#facc15'
                                         }}>
                                             {t.status[item.status as keyof typeof t.status] || item.status}
                                         </div>
+                                        <Link href={`/prediction/${item.id}`} className="ghost-button">
+                                            {t.viewPrediction}
+                                        </Link>
+                                        {item.status === 'COMPLETED' && (
+                                            <Link href={`/analysis/${item.id}`} className="ghost-button">
+                                                {t.viewAnalysis}
+                                            </Link>
+                                        )}
                                     </div>
-                                </Link>
+                                </div>
                             );
                         })}
                     </div>

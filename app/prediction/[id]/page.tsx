@@ -39,6 +39,7 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
     const [localScore, setLocalScore] = useState(0);
     const [globalScore, setGlobalScore] = useState(0);
     const [error, setError] = useState('');
+    const [submissionInput, setSubmissionInput] = useState<any>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -56,12 +57,14 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
 
                 if (data.status === 'COMPLETED' && data.resultData) {
                     const result = JSON.parse(data.resultData);
+                    const input = data.inputData ? JSON.parse(data.inputData) : null;
                     // result.engagementScore.local / global
 
                     // Clear interval if completed
                     if (intervalRef.current) clearInterval(intervalRef.current);
 
                     setLoading(false);
+                    setSubmissionInput(input);
                     // Animate scores
                     requestAnimationFrame(() => {
                         setLocalScore(result.engagementScore?.local || 0);
@@ -103,7 +106,7 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
     };
 
     return (
-        <div className="page">
+        <div className="page workspace-page workspace-soft">
             <Navbar />
 
             <section className="prediction-section fade-up delay-1" style={{ marginTop: 32 }}>
@@ -118,9 +121,26 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                     </div>
                 ) : (
                     <div className="prediction-content">
+                        {submissionInput && (
+                            <div className="glass workspace-panel" style={{ marginBottom: 24, padding: 24, borderRadius: 16 }}>
+                                <div className="muted tiny" style={{ marginBottom: 8 }}>
+                                    {lang === 'en' ? 'Current upload' : '当前上传内容'}
+                                </div>
+                                <h3 style={{ marginTop: 0, marginBottom: 8, color: 'var(--text)' }}>
+                                    {submissionInput.title || (lang === 'en' ? 'Untitled submission' : '未命名提交')}
+                                </h3>
+                                {submissionInput.textContent && (
+                                    <p className="muted" style={{ marginTop: 0, lineHeight: 1.6 }}>
+                                        {submissionInput.textContent.slice(0, 160)}
+                                        {submissionInput.textContent.length > 160 ? '...' : ''}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
                         {/* Local Scope */}
-                        <div className="result-block glass" style={{ marginBottom: 24, padding: 32, borderRadius: 16 }}>
-                            <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff' }}>{t.localTitle}</h3>
+                        <div className="result-block glass workspace-panel" style={{ marginBottom: 24, padding: 32, borderRadius: 16 }}>
+                            <h3 style={{ marginTop: 0, marginBottom: 16, color: 'var(--text)' }}>{t.localTitle}</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
                                 <div className="gauge-wrap" style={{ margin: 0 }}>
                                     <div className="gauge">
@@ -136,15 +156,15 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                                 </div>
                                 <div>
                                     <p className="muted" style={{ lineHeight: 1.6 }}>
-                                        <strong style={{ color: '#fff' }}>{t.localLabel}</strong> {t.localDesc}
+                                        <strong style={{ color: 'var(--text)' }}>{t.localLabel}</strong> {t.localDesc}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Global Scope */}
-                        <div className="result-block glass" style={{ padding: 32, borderRadius: 16 }}>
-                            <h3 style={{ marginTop: 0, marginBottom: 16, color: '#e8f0ff' }}>{t.globalTitle}</h3>
+                        <div className="result-block glass workspace-panel" style={{ padding: 32, borderRadius: 16 }}>
+                            <h3 style={{ marginTop: 0, marginBottom: 16, color: 'var(--text)' }}>{t.globalTitle}</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
                                 <div className="gauge-wrap" style={{ margin: 0 }}>
                                     <div className="gauge">
@@ -160,7 +180,7 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                                 </div>
                                 <div>
                                     <p className="muted" style={{ lineHeight: 1.6 }}>
-                                        <strong style={{ color: '#fff' }}>{t.globalLabel}</strong> {t.globalDesc}
+                                        <strong style={{ color: 'var(--text)' }}>{t.globalLabel}</strong> {t.globalDesc}
                                     </p>
                                 </div>
                             </div>

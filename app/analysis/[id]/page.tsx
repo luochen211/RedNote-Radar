@@ -28,7 +28,7 @@ const TOOLTIPS = {
         "Harmony": "Color harmony based on traditional Chinese five-color aesthetic theory, measuring color conflict or coordination in hotel videos",
         "Adaption": "Color adaptability based on traditional Chinese five-color aesthetic theory, measuring color matching between hotel videos and geographical theoretical benchmarks",
         "Control_Modern_Norm": "Refers to the degree of similarity between the content of hotel videos and modern cultural norms.",
-        "M_Oriental_Culture": "Refers to the degree of similarity between the content of hotel videos and Oriental cultural styles",
+        "M_Oriental_Culture": "Refers to the degree of similarity between the content of hotel videos and Eastern cultural styles",
         "M_Western_Culture": "Refers to the degree of similarity between the content of hotel videos and Western cultural styles."
     },
     zh: {
@@ -64,8 +64,8 @@ const copy = {
         tabQuality: "Content quality scores",
         tabSentiment: "Content sentiment scores",
         tabConsistency: "Content consistency scores",
-        tabOriental: "Oriental Aesthetics Score",
-        headerBalance: "Aesthetics Balance",
+        tabOriental: "Eastern Aesthetics Score",
+        headerBalance: "Eastern Aesthetics",
         headerStyle: "Cultural Style",
         norm: "Normalized (0-1)",
         lblVideoAes: "Video aesthetics score",
@@ -89,7 +89,7 @@ const copy = {
         lblHarmony: "Harmony",
         lblAdaption: "Adaption",
         lblModern: "Modern",
-        lblOriental: "Oriental",
+        lblOriental: "Eastern",
         lblWestern: "Western",
         lblControlModern: "Control_Modern_Norm",
     },
@@ -99,7 +99,7 @@ const copy = {
         tabSentiment: "内容情感评分",
         tabConsistency: "内容一致性评分",
         tabOriental: "东方美学评分",
-        headerBalance: "美学平衡",
+        headerBalance: "东方美学",
         headerStyle: "文化风格",
         norm: "归一化 (0-1)",
         lblVideoAes: "视频美学评分",
@@ -144,7 +144,7 @@ const CircularProgress = ({ value, label, size = 120, color = "#6ae3ff" }: { val
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke="rgba(255,255,255,0.1)"
+                    stroke="rgba(255,255,255,0.12)"
                     strokeWidth="8"
                     fill="transparent"
                 />
@@ -163,7 +163,7 @@ const CircularProgress = ({ value, label, size = 120, color = "#6ae3ff" }: { val
                 />
             </svg>
             <div style={{ position: 'absolute', textAlign: 'center' }}>
-                <div style={{ fontSize: size * 0.22, fontWeight: 700, color: '#fff' }}>{value}%</div>
+                <div style={{ fontSize: size * 0.22, fontWeight: 700, color: 'var(--text)' }}>{value}%</div>
             </div>
         </div>
     );
@@ -171,7 +171,7 @@ const CircularProgress = ({ value, label, size = 120, color = "#6ae3ff" }: { val
 
 const LinearProgress = ({ value, color = "#6ae3ff" }: { value: number, color?: string }) => {
     return (
-        <div style={{ width: '100%', height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden', marginTop: 12 }}>
+        <div style={{ width: '100%', height: 8, background: 'rgba(15,23,42,0.08)', borderRadius: 4, overflow: 'hidden', marginTop: 12 }}>
             <div
                 style={{
                     width: `${value}%`,
@@ -239,7 +239,7 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
                     strokeWidth="2"
                 />
                 {dataPoints.map((p, i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="4" fill="#fff" />
+                    <circle key={i} cx={p.x} cy={p.y} r="4" fill="#edf4ff" />
                 ))}
             </svg>
             {angles.map((a, i) => {
@@ -254,7 +254,7 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
                             left: p.x + xOff,
                             top: p.y + yOff,
                             transform: 'translate(-50%, -50%)',
-                            color: '#98a7c3',
+                            color: 'var(--muted)',
                             fontSize: 12,
                             textAlign: 'center',
                             width: 100
@@ -262,7 +262,7 @@ const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string
                     >
                         {data[i].label}
                         <br />
-                        <span style={{ color: '#fff', fontWeight: 600 }}>{data[i].value}</span>
+                        <span style={{ color: 'var(--text)', fontWeight: 600 }}>{data[i].value}</span>
                     </div>
                 );
             })}
@@ -280,6 +280,8 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null); // To store valid structure
+    const [submissionInput, setSubmissionInput] = useState<any>(null);
+    const [resultSource, setResultSource] = useState<string>("");
     const router = useRouter();
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -294,7 +296,10 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                     const json = await res.json();
                     if (json.status === 'COMPLETED' && json.resultData) {
                         const result = JSON.parse(json.resultData);
+                        const input = json.inputData ? JSON.parse(json.inputData) : null;
                         setData(result.analysis);
+                        setSubmissionInput(input);
+                        setResultSource(result.source || "");
                         setLoading(false);
                     } else if (json.status === 'PROCESSING' || json.status === 'PENDING') {
                         // Redirect back to prediction if not ready?? Or show loading?
@@ -325,8 +330,8 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 onMouseLeave={() => setHoveredMetric(null)}
                 onMouseMove={handleMouseMove}
                 style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'var(--panel-strong)',
+                    border: '1px solid var(--border)',
                     borderRadius: 16,
                     padding: 24,
                     display: 'flex',
@@ -339,14 +344,14 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                     transition: 'all 0.3s ease'
                 }}
             >
-                <div style={{ marginBottom: 16, fontSize: 13, color: '#98a7c3', textAlign: 'center', minHeight: 40, display: 'flex', alignItems: 'center' }}>
+                <div style={{ marginBottom: 16, fontSize: 13, color: 'var(--muted)', textAlign: 'center', minHeight: 40, display: 'flex', alignItems: 'center' }}>
                     {label}
                 </div>
 
                 {isPercent ? (
                     <CircularProgress value={numValue} label={label} />
                 ) : (
-                    <div style={{ fontSize: 32, fontWeight: 700, color: '#e8f0ff' }}>
+                    <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text)' }}>
                         {value}
                     </div>
                 )}
@@ -364,8 +369,8 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 onMouseLeave={() => setHoveredMetric(null)}
                 onMouseMove={handleMouseMove}
                 style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'var(--panel-strong)',
+                    border: '1px solid var(--border)',
                     borderRadius: 16,
                     padding: 24,
                     minHeight: 100,
@@ -378,8 +383,8 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 }}
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, color: '#98a7c3', maxWidth: '80%' }}>{label}</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#e8f0ff' }}>{value}</div>
+                    <div style={{ fontSize: 13, color: 'var(--muted)', maxWidth: '80%' }}>{label}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>{value}</div>
                 </div>
                 <LinearProgress value={numValue} />
             </div>
@@ -388,18 +393,18 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
     if (loading || !data) {
         return (
-            <div className="page" style={{ position: 'relative' }}>
+            <div className="page workspace-page workspace-soft" style={{ position: 'relative' }}>
                 <Navbar />
                 <div className="loader" style={{ textAlign: 'center', padding: '100px 0' }}>
                     <div className="spinner" style={{ margin: '0 auto' }}></div>
-                    <p className="muted" style={{ marginTop: 24, color: '#e8f0ff' }}>{t.loading}</p>
+                    <p className="muted" style={{ marginTop: 24, color: 'var(--text)' }}>{t.loading}</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="page" style={{ position: 'relative' }}>
+        <div className="page workspace-page workspace-soft" style={{ position: 'relative' }}>
             <Navbar />
 
             {/* Custom Chat-Style Floating Tooltip */}
@@ -410,21 +415,21 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                         top: mousePos.y + 20,
                         left: mousePos.x + 20,
                         maxWidth: 300,
-                        background: 'rgba(11, 18, 32, 0.95)',
+                        background: 'rgba(27, 39, 67, 0.96)',
                         backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(106, 227, 255, 0.3)',
+                        border: '1px solid rgba(15,23,42,0.12)',
                         borderRadius: '4px 12px 12px 12px',
                         padding: '16px',
                         zIndex: 9999,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        boxShadow: '0 12px 32px rgba(15,23,42,0.12)',
                         pointerEvents: 'none',
                         animation: 'fadeIn 0.2s ease-out'
                     }}
                 >
-                    <div style={{ color: '#6ae3ff', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+                    <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
                         {hoveredMetric}
                     </div>
-                    <div style={{ color: '#e8f0ff', fontSize: 14, lineHeight: 1.5 }}>
+                    <div style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.5 }}>
                         {tooltips[hoveredMetric as keyof typeof tooltips]}
                     </div>
                 </div>
@@ -437,7 +442,69 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                 <button className={`ghost-button ${activeTab === 'oriental' ? 'active' : ''}`} onClick={() => setActiveTab('oriental')}>{t.tabOriental}</button>
             </div>
 
-            <section className="analysis-section glass fade-up delay-1" style={{ padding: 40, marginTop: 24, minHeight: 500 }}>
+            {submissionInput && (
+                <section
+                    className="glass fade-up workspace-panel"
+                    style={{
+                        marginTop: 20,
+                        padding: 24,
+                        display: 'grid',
+                        gridTemplateColumns: submissionInput.coverPath ? '120px 1fr' : '1fr',
+                        gap: 20,
+                        alignItems: 'center'
+                    }}
+                >
+                    {submissionInput.coverPath && (
+                        <img
+                            src={submissionInput.coverPath}
+                            alt={submissionInput.title || 'cover'}
+                            style={{
+                                width: 120,
+                                height: 160,
+                                objectFit: 'cover',
+                                borderRadius: 12,
+                                border: '1px solid rgba(15,23,42,0.08)'
+                            }}
+                        />
+                    )}
+                    <div>
+                        <div className="muted tiny" style={{ marginBottom: 8 }}>
+                            {resultSource === 'actual-upload' ? 'Actual upload analysis' : 'Analysis result'}
+                        </div>
+                        <h3 style={{ marginTop: 0, marginBottom: 8, color: 'var(--text)' }}>
+                            {submissionInput.title || (lang === 'en' ? 'Untitled submission' : '未命名提交')}
+                        </h3>
+                        {submissionInput.textContent && (
+                            <p className="muted" style={{ marginTop: 0, lineHeight: 1.6 }}>
+                                {submissionInput.textContent.slice(0, 180)}
+                                {submissionInput.textContent.length > 180 ? '...' : ''}
+                            </p>
+                        )}
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                            {(submissionInput.tags || []).map((tag: string) => (
+                                <span
+                                    key={tag}
+                                    style={{
+                                        padding: '6px 10px',
+                                        borderRadius: 999,
+                                        background: 'rgba(122, 166, 255, 0.12)',
+                                        border: '1px solid rgba(140, 198, 255, 0.18)',
+                                        color: 'var(--text)',
+                                        fontSize: 12
+                                    }}
+                                >
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                        <div className="muted tiny" style={{ marginTop: 12 }}>
+                            {submissionInput.videoName ? `Video: ${submissionInput.videoName}` : ''}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            <section className="analysis-section glass fade-up delay-1 workspace-panel" style={{ padding: 40, marginTop: 24, minHeight: 500 }}>
 
                 {activeTab === 'quality' && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
@@ -479,7 +546,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                             onMouseLeave={() => setHoveredMetric(null)}
                             onMouseMove={handleMouseMove}
                         >
-                            <h3 style={{ color: '#e8f0ff', marginBottom: 20 }}>{t.headerBalance}</h3>
+                            <h3 style={{ color: 'var(--text)', marginBottom: 20 }}>{t.headerBalance}</h3>
                             <RadarChartTriangle
                                 data={[
                                     { label: t.lblRichness, value: data.orientalAesthetics.richness, max: 1 },
@@ -497,7 +564,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
                             onMouseLeave={() => setHoveredMetric(null)}
                             onMouseMove={handleMouseMove}
                         >
-                            <h3 style={{ color: '#e8f0ff', marginBottom: 20 }}>{t.headerStyle}</h3>
+                            <h3 style={{ color: 'var(--text)', marginBottom: 20 }}>{t.headerStyle}</h3>
                             <RadarChartTriangle
                                 data={[
                                     { label: t.lblModern, value: data.orientalAesthetics.modern, max: 1 },

@@ -5,42 +5,42 @@ import { useLanguage } from "../context/LanguageContext";
 const copy = {
     en: {
         heroTitle:
-            "Video-based Social Media Marketing Analysis and Effectiveness Prediction",
-        methodIntroTitle: "Method overview",
+            "System workflow and intelligence modules",
+        methodIntroTitle: "Workflow overview",
         methodIntroLead:
-            "The Video-based Social Media Marketing Analysis and Effectiveness Prediction Model captures spatiotemporal features within video data modalities, mines semantic interaction information across different modalities, and integrates post attributes that attract user attention, thereby achieving more accurate prediction of user engagement on online platforms. This model comprises five integrated modules: (1) single-modal feature extraction module, (2) multimodal interaction module, (3) modal adaptive fusion module, (4) user attention module, and (5) engagement prediction module.",
+            "The current system focuses on a complete web flow: upload, prediction, analysis and archive. The interface should explain capabilities in business language rather than only research terminology.",
         methodDetail:
-            "Single-modal feature extraction module processes post content in three modalities: VGG for visual features from frames, VGGish for audio features, and BERT for token-level text features. For video and audio modalities, separate spatio-temporal CNNs capture intra-modality spatio-temporal interactions—temporal dynamics across frames and spatial correlations within frames. For text, a semantic attention layer extracts contextual relationships between adjacent words.",
+            "Each module maps to a visible user journey: what is uploaded, what the system infers, and how the result is displayed for decision making.",
         methodLong: [
-            "Single-modal feature extraction module processes post content in three modalities: VGG for visual features from frames, VGGish for audio features, and BERT for token-level text features. For video and audio modalities, separate spatio-temporal CNNs capture intra-modality spatio-temporal interactions—temporal dynamics across frames and spatial correlations within frames. For text, a semantic attention layer extracts contextual relationships between adjacent words.",
-            "The multimodal interaction module processes outputs from the single-modal extractors to enable cross-modal interactions. It specifically models relationships between text and other modalities using two dedicated layers: an audio-text cross-attention layer and a text-video cross-attention layer. This captures complementary information to enhance overall post understanding.",
-            "The modal adaptive fusion module receives three types of modality features output by the multimodal interaction module, and uses an adaptive feature fusion method to determine the relative importance thresholds of different modality features, so as to optimize the final multimodal representation.",
-            "The user attention module integrates multimodal fused features with user-attended engagement indicators (visual appeal, textual appeal, content congruence, account portrait) to enhance engagement prediction. It analyzes post similarity patterns through multimodal feature consistency to identify eye-catching presentation formats. By combining content information with these attention-shaping factors, the module refines the model’s focus on behaviorally relevant signals, improving prediction accuracy for short-form video posts.",
-            "Finally, the engagement prediction module is a classifier composed of multilayer perceptron. The multimodal fusion feature is fed into the classifier which outputs predicted user engagement scores for social media video posts.",
+            "Step 1. Upload the target video, optional cover image, title and text content.",
+            "Step 2. The system extracts media metadata and text features from the uploaded materials.",
+            "Step 3. Voice, sentiment, arousal and consistency indicators are generated based on the selected inputs.",
+            "Step 4. Prediction and analysis pages display the structured results for this submission.",
+            "Step 5. The final record is stored in History for later comparison and review."
         ],
-        localGlobalTitle: "Local vs Global engagement",
-        localGlobalDesc: "Local scope benchmarks Hotel Icon historical likes; Global scope benchmarks official hotel accounts across Xiaohongshu. Both delivered by one classifier head.",
-        localTag: "Local · Hotel Icon history",
-        globalTag: "Global · Industry-leading range",
+        localGlobalTitle: "Frontend presentation focus",
+        localGlobalDesc: "For the web page, the most important thing is to show upload input, analysis process and structured output in a way that matches the documentation.",
+        localTag: "Input · Video / Audio / Text",
+        globalTag: "Output · Scores / Consistency / DataFrame-style results",
     },
     zh: {
-        heroTitle: "面向短视频的社交媒体营销分析与效果预测",
-        methodIntroTitle: "方法介绍",
+        heroTitle: "系统流程与智算模块",
+        methodIntroTitle: "流程说明",
         methodIntroLead:
-            "面向短视频的社交媒体营销分析与效果预测模型捕捉视频数据模态内的时空特征，挖掘不同模态间的语义交互信息，并整合吸引用户注意的帖子属性，从而实现对在线平台用户参与度的更精准预测。该模型包含五个集成模块：（1）单模态特征提取模块，（2）多模态交互模块，（3）模态自适应融合模块，（4）用户注意模块，以及（5）互动预测模块。",
+            "当前系统强调完整网页流程：上传、预测、分析与归档。界面表达应更贴近业务展示，而不是只停留在研究型术语。",
         methodDetail:
-            "单模态特征提取模块处理三种模态的帖子内容：用于帧视觉特征的VGG，用于音频特征的VGGish，以及用于词级文本特征的BERT。对于视频和音频模态，独立的时空CNN捕捉模态内的时空交互——跨帧的时间动态和帧内的空间相关性。对于文本，语义注意力层提取相邻词之间的上下文关系。",
+            "每个模块都应让用户看清楚输入了什么、系统分析了什么、最终返回了什么结果，便于演示和汇报。",
         methodLong: [
-            "单模态特征提取模块处理三种模态的帖子内容：用于帧视觉特征的VGG，用于音频特征的VGGish，以及用于词级文本特征的BERT。对于视频和音频模态，独立的时空CNN捕捉模态内的时空交互——跨帧的时间动态和帧内的空间相关性。对于文本，语义注意力层提取相邻词之间的上下文关系。",
-            "多模态交互模块处理单模态提取器的输出，从而实现跨模态交互。它专门使用两个专用层对文本与其他模态之间的关系进行建模：音频-文本交叉注意力层和文本-视频交叉注意力层。这有助于捕捉互补信息，增强对帖子的整体理解。",
-            "模态自适应融合模块接收多模态交互模块输出的三种模态特征，并采用自适应特征融合方法来确定不同模态特征的相对重要性阈值，从而优化最终的多模态表征。",
-            "用户注意模块将多模态融合特征与用户关注的互动指标（视觉吸引力、文本吸引力、内容一致性、账号画像）相结合，以增强互动预测。它通过多模态特征一致性分析帖子的相似性模式，识别引人注目的呈现形式。通过将内容信息与这些注意力塑造因素相结合，该模块细化了模型对行为相关信号的关注，提高了短视频帖子预测的准确性。",
-            "最后，互动预测模块是一个由多层感知机组成的分类器。多模态融合特征被输入到分类器中，输出预测的社交媒体视频帖子用户互动分数。",
+            "步骤 1：上传目标视频、可选封面、标题与正文内容。",
+            "步骤 2：系统从上传素材中提取媒体元数据与文本特征。",
+            "步骤 3：围绕输入内容生成语音、人声、情感、激活度与一致性指标。",
+            "步骤 4：在预测页与分析页中展示本次提交的结构化结果。",
+            "步骤 5：最终记录进入历史页，便于后续回看和对比。"
         ],
-        localGlobalTitle: "本地 vs 全局互动",
-        localGlobalDesc: "本地范围对标 Hotel Icon 历史点赞，全局范围对标小红书官方酒店账号行业领先区间，统一分类头输出。",
-        localTag: "本地 · Hotel Icon 历史基准",
-        globalTag: "全局 · 行业领先区间",
+        localGlobalTitle: "前端展示重点",
+        localGlobalDesc: "网页展示应重点突出上传输入、分析过程与结构化输出，并与文档中的字段说明保持一致。",
+        localTag: "输入 · 视频 / 音频 / 文本",
+        globalTag: "输出 · 分数 / 一致性 / 类 DataFrame 结果",
     },
 };
 

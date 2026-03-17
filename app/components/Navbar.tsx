@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../context/LanguageContext";
 import { useAuth } from "../context/AuthContext";
+import { isAdminRole } from "@/lib/roles";
 
 const copy = {
     en: {
@@ -16,17 +17,21 @@ const copy = {
         navUpload: "Data Upload",
         navHistory: "History",
         navAdmin: "Admin",
+        navHome: "Home",
+        logout: "Logout",
     },
     zh: {
-        brand: "酒店短视频智算台",
+        brand: "酒店短视频智算平台",
         navLogin: "登录",
-        navOverview: "介绍",
+        navOverview: "系统介绍",
         navArchitecture: "架构",
         navLinks: "友链",
         langToggle: "EN",
         navUpload: "数据上传",
         navHistory: "历史记录",
         navAdmin: "管理后台",
+        navHome: "首页",
+        logout: "退出",
     },
 };
 
@@ -36,24 +41,27 @@ export default function Navbar() {
     const t = copy[lang];
     const pathname = usePathname();
 
-    const navItems = [
-        { label: lang === 'en' ? "Home" : "首页", href: "/" },
+    const navItems = user ? [
+        { label: t.navHome, href: "/" },
+        { label: t.navOverview, href: "/overview" },
+    ] : [
+        { label: t.navLogin, href: "/#login" },
+        { label: t.navOverview, href: "/overview" },
     ];
 
     if (user) {
         navItems.push({
-            label: t.navUpload || (lang === 'en' ? "Data Upload" : "数据上传"),
+            label: t.navUpload,
             href: "/upload"
         });
-        // Points to History for listing past predictions/analysis
         navItems.push({
-            label: t.navHistory || (lang === 'en' ? "History" : "历史记录"),
+            label: t.navHistory,
             href: "/history"
         });
 
-        if (user.role === 'admin') {
+        if (isAdminRole(user.role)) {
             navItems.push({
-                label: t.navAdmin || (lang === 'en' ? "Admin" : "管理后台"),
+                label: t.navAdmin,
                 href: "/admin"
             });
         }
@@ -66,6 +74,9 @@ export default function Navbar() {
             <div className="topbar">
                 <div className="brand">
                     <div className="brand-title">{t.brand}</div>
+                    <div className="brand-sub">
+                        {lang === "en" ? "Hotel short-video intelligence workspace" : "酒店短视频分析与预测系统"}
+                    </div>
                 </div>
                 <div className="nav-links">
                     {navItems.map((item) => {
@@ -92,9 +103,9 @@ export default function Navbar() {
                         <button
                             className="ghost-button"
                             onClick={() => logout()}
-                            style={{ border: '1px solid rgba(255,100,100,0.5)', color: '#ffaaaa' }}
+                            style={{ border: '1px solid rgba(220,38,38,0.18)', color: '#dc2626' }}
                         >
-                            {lang === "en" ? "Logout" : "退出"}
+                            {t.logout}
                         </button>
                     )}
                 </div>
