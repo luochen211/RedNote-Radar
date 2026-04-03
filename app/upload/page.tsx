@@ -272,8 +272,8 @@ export default function UploadPage() {
                 </div>
             )}
 
-            <section className="upload-section glass fade-up delay-1 workspace-panel" style={{ padding: 32, marginTop: 32 }}>
-                <div className="section-head" style={{ marginBottom: 32 }}>
+            <section className="upload-section glass fade-up delay-1 workspace-panel workspace-section" style={{ padding: 32, marginTop: 32 }}>
+                <div className="section-head workspace-header" style={{ marginBottom: 32 }}>
                     <h3>{t.pageTitle}</h3>
                 </div>
 
@@ -282,7 +282,7 @@ export default function UploadPage() {
                     <div className="stack">
                         <label className="muted">{t.labelVideo}</label>
                         <div
-                            className={`upload-box workspace-upload-box ${isDraggingVideo ? 'is-dragging' : ''}`}
+                            className={`upload-box workspace-upload-box workspace-dropzone ${isDraggingVideo ? 'is-dragging' : ''}`}
                             style={{
                                 borderRadius: 8,
                                 padding: '40px 20px',
@@ -312,7 +312,7 @@ export default function UploadPage() {
                     <div className="stack">
                         <label className="muted">{t.labelCover}</label>
                         <div
-                            className={`upload-box workspace-upload-box ${isDraggingCover ? 'is-dragging' : ''}`}
+                            className={`upload-box workspace-upload-box workspace-dropzone ${isDraggingCover ? 'is-dragging' : ''}`}
                             style={{
                                 borderRadius: 8,
                                 padding: '40px 20px',

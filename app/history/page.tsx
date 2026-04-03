@@ -76,8 +76,10 @@ export default function HistoryPage() {
     return (
         <div className="page workspace-page workspace-inverse workspace-soft">
             <Navbar />
-            <section className="glass fade-up workspace-panel" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
-                <h3>{t.pageTitle}</h3>
+            <section className="glass fade-up workspace-panel workspace-section" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
+                <div className="workspace-header">
+                    <h3>{t.pageTitle}</h3>
+                </div>
 
                 {loading ? (
                     <div style={{ marginTop: 20 }}>{t.loading}</div>
@@ -89,7 +91,7 @@ export default function HistoryPage() {
                             return (
                                 <div
                                     key={item.id}
-                                    className="upload-box workspace-history-card"
+                                    className="upload-box workspace-history-card workspace-list-card"
                                     style={{
                                         padding: 20,
                                         borderRadius: 8,

@@ -38,7 +38,6 @@ interface Analytics {
         submissions: number;
         logs: number;
     };
-    topActions: { label: string; count: number }[];
     topLocations: { label: string; count: number }[];
 }
 
@@ -66,7 +65,6 @@ const copy = {
         cardSubs: "Total submissions",
         cardLogs: "Audit logs",
         latestLogs: "Latest activity",
-        topActions: "Top actions",
         topLocations: "Top locations",
         empty: "No data available.",
         confirmUser: "Are you sure you want to delete this user?",
@@ -103,7 +101,6 @@ const copy = {
         cardSubs: "提交总数",
         cardLogs: "审计日志数",
         latestLogs: "最近活动",
-        topActions: "高频动作",
         topLocations: "高频地点",
         empty: "暂无数据。",
         confirmUser: "确定要删除该用户吗？",
@@ -203,8 +200,8 @@ export default function AdminPage() {
     return (
         <div className="page workspace-page workspace-inverse workspace-soft">
             <Navbar />
-            <section className="glass fade-up workspace-panel" style={{ padding: 36, marginTop: 36, minHeight: '80vh' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 24, alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap' }}>
+            <section className="glass fade-up workspace-panel workspace-section" style={{ padding: 36, marginTop: 36, minHeight: '80vh' }}>
+                <div className="workspace-header" style={{ display: 'flex', justifyContent: 'space-between', gap: 24, alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap' }}>
                     <div>
                         <h3 style={{ marginBottom: 8 }}>{t.pageTitle}</h3>
                         <div className="muted">{t.pageSubtitle}</div>
@@ -217,16 +214,16 @@ export default function AdminPage() {
                 </div>
 
                 {analytics && (
-                    <div className="admin-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
-                        <div className="glass" style={{ padding: 18, borderRadius: 18 }}>
+                    <div className="admin-kpi-grid workspace-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
+                        <div className="glass workspace-subcard workspace-stat-card" style={{ padding: 18, borderRadius: 18 }}>
                             <div className="muted tiny">{t.cardUsers}</div>
                             <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--text)' }}>{analytics.totals.users}</div>
                         </div>
-                        <div className="glass" style={{ padding: 18, borderRadius: 18 }}>
+                        <div className="glass workspace-subcard workspace-stat-card" style={{ padding: 18, borderRadius: 18 }}>
                             <div className="muted tiny">{t.cardSubs}</div>
                             <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--text)' }}>{analytics.totals.submissions}</div>
                         </div>
-                        <div className="glass" style={{ padding: 18, borderRadius: 18 }}>
+                        <div className="glass workspace-subcard workspace-stat-card" style={{ padding: 18, borderRadius: 18 }}>
                             <div className="muted tiny">{t.cardLogs}</div>
                             <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--text)' }}>{analytics.totals.logs}</div>
                         </div>
@@ -235,7 +232,7 @@ export default function AdminPage() {
 
                 {activeTab === 'users' && (
                     <div style={{ overflowX: 'auto' }}>
-                        <table className="workspace-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <table className="workspace-table workspace-data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ textAlign: 'left' }}>
                                     <th style={{ padding: 12 }}>{t.thUsername}</th>
@@ -272,7 +269,7 @@ export default function AdminPage() {
 
                 {activeTab === 'submissions' && (
                     <div style={{ overflowX: 'auto' }}>
-                        <table className="workspace-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <table className="workspace-table workspace-data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ textAlign: 'left' }}>
                                     <th style={{ padding: 12 }}>{t.thUser}</th>
@@ -316,12 +313,12 @@ export default function AdminPage() {
 
                 {activeTab === 'audit' && (
                     <div className="admin-audit-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 18 }}>
-                        <div className="glass" style={{ borderRadius: 20, padding: 20 }}>
+                        <div className="glass workspace-subcard" style={{ borderRadius: 20, padding: 20 }}>
                             <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>{t.latestLogs}</div>
                             <div style={{ display: 'grid', gap: 12 }}>
                                 {logs.length === 0 && <div className="muted">{t.empty}</div>}
                                 {logs.slice(0, 12).map((log) => (
-                                    <div key={log.id} className="admin-log-row" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 0.8fr 1fr', gap: 12, padding: 12, borderRadius: 14, background: 'rgba(122, 166, 255, 0.08)' }}>
+                                    <div key={log.id} className="admin-log-row workspace-list-card" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr 0.8fr 1fr', gap: 12, padding: 12, borderRadius: 14, background: 'rgba(122, 166, 255, 0.08)' }}>
                                         <div>
                                             <div style={{ color: 'var(--text)', fontWeight: 600 }}>{log.user?.username || "-"}</div>
                                             <div className="muted tiny">{log.user?.role || "-"}</div>
@@ -335,19 +332,7 @@ export default function AdminPage() {
                         </div>
 
                         <div style={{ display: 'grid', gap: 18 }}>
-                            <div className="glass" style={{ borderRadius: 20, padding: 20 }}>
-                                <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>{t.topActions}</div>
-                                <div style={{ display: 'grid', gap: 10 }}>
-                                    {(analytics?.topActions || []).map((item) => (
-                                        <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 14, background: 'rgba(122, 166, 255, 0.08)' }}>
-                                            <span style={{ color: 'var(--text)' }}>{item.label}</span>
-                                            <strong style={{ color: 'var(--text)' }}>{item.count}</strong>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="glass" style={{ borderRadius: 20, padding: 20 }}>
+                            <div className="glass workspace-subcard" style={{ borderRadius: 20, padding: 20 }}>
                                 <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>{t.topLocations}</div>
                                 <div style={{ display: 'grid', gap: 10 }}>
                                     {(analytics?.topLocations || []).map((item) => (

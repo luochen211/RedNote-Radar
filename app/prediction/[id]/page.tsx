@@ -109,7 +109,7 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
         <div className="page workspace-page workspace-soft">
             <Navbar />
 
-            <section className="prediction-section fade-up delay-1" style={{ marginTop: 32 }}>
+            <section className="prediction-section fade-up delay-1 workspace-section" style={{ marginTop: 32 }}>
                 {error ? (
                     <div className="loader" style={{ textAlign: 'center', padding: '100px 0', color: '#ff6b6b' }}>
                         <h3>{error}</h3>
@@ -122,7 +122,7 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                 ) : (
                     <div className="prediction-content">
                         {submissionInput && (
-                            <div className="glass workspace-panel" style={{ marginBottom: 24, padding: 24, borderRadius: 16 }}>
+                            <div className="glass workspace-panel prediction-hero-card" style={{ marginBottom: 24, padding: 24, borderRadius: 16 }}>
                                 <div className="muted tiny" style={{ marginBottom: 8 }}>
                                     {lang === 'en' ? 'Current upload' : '当前上传内容'}
                                 </div>
@@ -139,9 +139,9 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                         )}
 
                         {/* Local Scope */}
-                        <div className="result-block glass workspace-panel" style={{ marginBottom: 24, padding: 32, borderRadius: 16 }}>
+                        <div className="result-block glass workspace-panel prediction-result-card" style={{ marginBottom: 24, padding: 32, borderRadius: 16 }}>
                             <h3 style={{ marginTop: 0, marginBottom: 16, color: 'var(--text)' }}>{t.localTitle}</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
+                            <div className="prediction-result-grid" style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
                                 <div className="gauge-wrap" style={{ margin: 0 }}>
                                     <div className="gauge">
                                         <div className="gauge-arc"></div>
@@ -163,9 +163,9 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                         </div>
 
                         {/* Global Scope */}
-                        <div className="result-block glass workspace-panel" style={{ padding: 32, borderRadius: 16 }}>
+                        <div className="result-block glass workspace-panel prediction-result-card" style={{ padding: 32, borderRadius: 16 }}>
                             <h3 style={{ marginTop: 0, marginBottom: 16, color: 'var(--text)' }}>{t.globalTitle}</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
+                            <div className="prediction-result-grid" style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
                                 <div className="gauge-wrap" style={{ margin: 0 }}>
                                     <div className="gauge">
                                         <div className="gauge-arc"></div>
