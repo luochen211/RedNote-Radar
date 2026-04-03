@@ -16,7 +16,7 @@ export default function OverviewPage() {
   }, []);
 
   return (
-    <div className={`page doc-home workspace-soft ${mounted ? "mounted" : ""}`}>
+    <div className={`page doc-home overview-page workspace-soft ${mounted ? "mounted" : ""}`}>
       <ParticleBackground />
       <Navbar />
 

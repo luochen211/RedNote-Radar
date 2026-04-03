@@ -170,25 +170,24 @@ export default function Modules() {
                     gap: 16px;
                 }
                 .doc-sheet-card {
-                    background: rgba(22, 31, 54, 0.78);
-                    border: 1px solid rgba(140, 198, 255, 0.14);
+                    background: #ffffff;
+                    border: 1px solid rgba(15, 23, 42, 0.1);
                     border-radius: 18px;
                     overflow: hidden;
-                    box-shadow: 0 18px 40px rgba(8, 14, 28, 0.18);
-                    backdrop-filter: blur(16px);
+                    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
                 }
                 .doc-sheet-head {
                     display: flex;
                     gap: 14px;
                     align-items: center;
                     padding: 18px 20px;
-                    border-bottom: 1px solid rgba(140, 198, 255, 0.12);
-                    background: rgba(122, 166, 255, 0.08);
+                    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+                    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
                 }
                 .doc-sheet-head h4 {
                     margin: 0;
                     font-size: 18px;
-                    color: #edf4ff;
+                    color: #0f172a;
                     line-height: 1.4;
                 }
                 .doc-sheet-index {
@@ -197,12 +196,12 @@ export default function Modules() {
                     border-radius: 12px;
                     display: grid;
                     place-items: center;
-                    background: rgba(122, 166, 255, 0.12);
-                    color: #cfe4ff;
+                    background: #e2e8f0;
+                    color: #334155;
                     font-weight: 700;
                     letter-spacing: 0.08em;
                     font-family: monospace;
-                    border: 1px solid rgba(140, 198, 255, 0.16);
+                    border: 1px solid rgba(148, 163, 184, 0.22);
                 }
                 .doc-sheet-body {
                     padding: 8px 20px 20px;
@@ -212,13 +211,13 @@ export default function Modules() {
                     grid-template-columns: 132px 1fr;
                     gap: 14px;
                     padding: 14px 0;
-                    border-bottom: 1px solid rgba(140, 198, 255, 0.10);
+                    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
                 }
                 .doc-line:last-child {
                     border-bottom: none;
                 }
                 .doc-line span {
-                    color: #93accf;
+                    color: #64748b;
                     font-size: 12px;
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
@@ -226,12 +225,12 @@ export default function Modules() {
                 }
                 .doc-line p {
                     margin: 0;
-                    color: #edf4ff;
+                    color: #1e293b;
                     line-height: 1.7;
                     font-size: 14px;
                 }
                 .doc-line.note p {
-                    color: #d2def4;
+                    color: #475569;
                 }
                 @media (max-width: 640px) {
                     .doc-line {
