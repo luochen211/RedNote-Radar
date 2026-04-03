@@ -5,27 +5,33 @@ import { useLanguage } from "../context/LanguageContext";
 const copy = {
     en: {
         brand: "Hotel Video InsightHub",
+        kicker: "Method Overview",
+        abstractLabel: "Core Method",
+        methodName: "Video-based Social Media Marketing Analysis and Effectiveness Prediction",
         heroLead:
-            "A multilingual analysis workspace for hotel short videos. Upload video, cover, title and copy to receive engagement prediction, sentiment analysis, consistency diagnostics and Eastern aesthetics insights.",
-        subLead: "Designed for hospitality teams that need a cleaner demo surface than a research prototype.",
+            "Video-based social media has become a transformative marketing force. This model analyzes hotel short-video content across visual, audio and textual modalities, and predicts marketing effectiveness to support strategy optimization and consumer behavior research.",
+        subLead: "The model comprises five modules: single-modal feature extraction, multimodal interaction, modal adaptive fusion, user attention, and engagement prediction.",
         scrollCta: "View system overview",
         quickFacts: [
-            "Chinese and English titles are both supported",
-            "Local and global engagement prediction",
-            "Cross-modal analysis with structured cards",
-            "Submission history for later comparison"
+            "Single-modal feature extraction with VGG, VGGish and BERT",
+            "Cross-modal interaction across text, audio and video",
+            "Adaptive fusion with user-attention signals",
+            "Outputs local/global prediction and multidimensional analysis"
         ],
     },
     zh: {
         brand: "酒店短视频智算平台",
-        heroLead: "系统支持中英文标题与文本输入，围绕上传的视频、封面、标题和正文内容，输出互动预测、情感与激活度分析、跨模态一致性诊断以及东方美学相关结果。",
-        subLead: "界面将研究型原型整理成更适合汇报、演示和后续商用展示的科技化工作台。",
+        kicker: "方法概览",
+        abstractLabel: "核心方法",
+        methodName: "视频社交媒体营销分析与效果预测",
+        heroLead: "视频社交媒体已经成为重塑消费者体验的重要营销力量。本模型综合视觉、音频与文本等多模态信息，对酒店短视频内容进行分析并预测其营销效果，为内容优化、策略制定与消费者行为研究提供支持。",
+        subLead: "模型由五个模块组成：单模态特征提取、多模态交互、模态自适应融合、用户注意力模块与互动效果预测模块。",
         scrollCta: "查看系统介绍",
         quickFacts: [
-            "支持中英文标题输入",
-            "预测页展示本号与全网双范围分数",
-            "分析页展示多模态诊断指标",
-            "历史页沉淀全部提交记录"
+            "单模态特征提取：VGG、VGGish、BERT",
+            "跨模态交互：文本、音频、视频联合建模",
+            "自适应融合：结合用户注意力相关特征",
+            "输出结果：本地/全局预测与多维分析"
         ],
     },
 };
@@ -36,10 +42,10 @@ export default function Hero() {
 
     return (
         <div className="hero-copy">
-            <div className="doc-kicker">{lang === "en" ? "AI Analysis Platform" : "AI 智算平台"}</div>
             <h1>{t.brand}</h1>
             <div className="doc-abstract landing-abstract">
-                <div className="doc-abstract-label">{lang === "en" ? "Platform Intro" : "平台简介"}</div>
+                <div className="doc-abstract-label">{t.abstractLabel}</div>
+                <p className="lead" style={{ fontWeight: 700 }}>{t.methodName}</p>
                 <p className="lead">{t.heroLead}</p>
                 {t.subLead ? <p className="lead muted">{t.subLead}</p> : null}
             </div>
@@ -50,20 +56,6 @@ export default function Hero() {
                         <span>{fact}</span>
                     </div>
                 ))}
-            </div>
-            <div className="landing-stat-row">
-                <div className="landing-stat-card">
-                    <span>{lang === "en" ? "Upload inputs" : "上传输入"}</span>
-                    <strong>9+</strong>
-                </div>
-                <div className="landing-stat-card">
-                    <span>{lang === "en" ? "Analysis groups" : "分析模块"}</span>
-                    <strong>4</strong>
-                </div>
-                <div className="landing-stat-card">
-                    <span>{lang === "en" ? "Scopes" : "预测范围"}</span>
-                    <strong>2</strong>
-                </div>
             </div>
             <a className="scroll-hint landing-link" href="/overview">
                 {t.scrollCta}
