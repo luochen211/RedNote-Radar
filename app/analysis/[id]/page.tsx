@@ -1,583 +1,750 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 
-const TOOLTIPS = {
-    en: {
-        "Video aesthetics score": "A indicator for measuring the aesthetic features of video, such as composition, color matching.",
-        "Text readability": "An indicator for evaluating the ease with which the audience can understand and read the text content.",
-        "Cover image quality score": "A indicator for evaluating cover image quality based on clarity, resolution, integrity and other dimensions.",
-        "Cover image aesthetics score": "A indicator for measuring the visual aesthetic characteristics of cover images, such as composition and color coordination.",
-        "Human voice presence": "A binary variable for determining whether human voice is included in the video audio.",
-        "Human face presence": "A binary variable for determining whether human faces appear in the video frames.",
-        "Title sentiment score": "An indicator for quantifying the emotional tendency (positive/negative) conveyed by the title text.",
-        "Text sentiment score": "An indicator for quantifying the emotional tendency (positive/negative) conveyed by the main text.",
-        "Text arousal score": "A indicator for measuring the degree of audience emotional activation triggered by text content.",
-        "Audio sentiment score": "An indicator for quantifying the emotional tendency (positive/negative) conveyed by the audio content.",
-        "Audio arousal score": "A indicator for measuring the degree of audience emotional activation triggered by audio content.",
-        "Title-tags content consistency": "An indicator for measuring the consistency of content information between the title and tags.",
-        "Title-cover image content consistency": "An indicator for measuring the consistency of content information between the title and cover image.",
-        "Title-video content consistency": "An indicator for measuring the consistency of content information between the title and video content.",
-        "Text-audio sentiment consistency": "A indicator for measuring the consistency of emotional tendencies conveyed by text and audio.",
-        "Text-video sentiment consistency": "A indicator for measuring the consistency of emotional tendencies conveyed by text and video content.",
-        "Video-audio sentiment consistency": "A indicator for measuring the consistency of emotional tendencies conveyed by video content and audio.",
-        "Richness": "Color richness based on traditional Chinese five-color aesthetic theory; values closer to 0 align with Taoist simplicity, while those closer to 1 fit ritualistic completeness",
-        "Harmony": "Color harmony based on traditional Chinese five-color aesthetic theory, measuring color conflict or coordination in hotel videos",
-        "Adaption": "Color adaptability based on traditional Chinese five-color aesthetic theory, measuring color matching between hotel videos and geographical theoretical benchmarks",
-        "Control_Modern_Norm": "Refers to the degree of similarity between the content of hotel videos and modern cultural norms.",
-        "M_Oriental_Culture": "Refers to the degree of similarity between the content of hotel videos and Eastern cultural styles",
-        "M_Western_Culture": "Refers to the degree of similarity between the content of hotel videos and Western cultural styles."
-    },
-    zh: {
-        "视频美学评分": "衡量视频美学特征的指标，如构图、色彩搭配。",
-        "文本可读性": "评估受众理解和阅读文本内容难易程度的指标。",
-        "封面图像质量分": "基于清晰度、分辨率、完整性等维度评估封面图像质量的指标。",
-        "封面美学评分": "衡量封面图像视觉美学特征的指标，如构图和色彩协调性。",
-        "人声存在": "确定视频音频中是否包含人声的二元变量。",
-        "人脸存在": "确定视频帧中是否出现人脸的二元变量。",
-        "标题情感分": "量化标题文本传达的情感倾向（积极/消极）的指标。",
-        "文本情感分": "量化正文文本传达的情感倾向（积极/消极）的指标。",
-        "文本激活度": "衡量文本内容引发受众情绪激活程度的指标。",
-        "音频情感分": "量化音频内容传达的情感倾向（积极/消极）的指标。",
-        "音频激活度": "衡量音频内容引发受众情绪激活程度的指标。",
-        "标题-标签内容一致性": "衡量标题与标签之间内容信息一致性的指标。",
-        "标题-封面内容一致性": "衡量标题与封面图像之间内容信息一致性的指标。",
-        "标题-视频内容一致性": "衡量标题与视频内容之间内容信息一致性的指标。",
-        "文本-音频情感一致性": "衡量文本与音频传达的情感倾向一致性的指标。",
-        "文本-视频情感一致性": "衡量文本与视频内容传达的情感倾向一致性的指标。",
-        "视频-音频情感一致性": "衡量视频内容与音频传达的情感倾向一致性的指标。",
-        "丰富度": "基于中国传统五色美学理论的色彩丰富度；数值接近0符合道家简约，接近1符合儒家礼仪完备。",
-        "和谐度": "基于中国传统五色美学理论的色彩和谐度，衡量酒店视频中的色彩冲突或协调性。",
-        "适配度": "基于中国传统五色美学理论的色彩适应性，衡量酒店视频与地理理论基准之间的色彩匹配度。",
-        "现代规范控制": "指酒店视频内容与现代文化规范的相似程度。",
-        "东方文化": "指酒店视频内容与东方文化风格的相似程度",
-        "西方文化": "指酒店视频内容与西方文化风格的相似程度"
-    }
+type AnalysisData = {
+  quality: {
+    aesthetic: string;
+    readability: string;
+    coverQuality: string;
+    coverAesthetic: string;
+    voice: string;
+    face: string;
+  };
+  sentiment: {
+    title: string;
+    text: string;
+    textArousal: string;
+    audio: string;
+    audioArousal: string;
+  };
+  consistency: {
+    titleTags: string;
+    titleCover: string;
+    titleVideo: string;
+    textAudio: string;
+    textVideo: string;
+    videoAudio: string;
+  };
+  orientalAesthetics: {
+    richness: number;
+    harmony: number;
+    adaption: number;
+    modern: number;
+    oriental: number;
+    western: number;
+  };
 };
+
+type ResultData = {
+  source?: string;
+  engagementScore?: {
+    local: number;
+    global: number;
+  };
+  analysis: AnalysisData;
+};
+
+type SubmissionInput = {
+  title?: string;
+  textContent?: string;
+  tags?: string[];
+  videoName?: string;
+  coverPath?: string;
+};
+
+type DiagnosticStep = {
+  priority: string;
+  tag: string;
+  title: string;
+  detail: string;
+};
+
+type MetricTabKey = "quality" | "sentiment" | "consistency" | "oriental";
 
 const copy = {
-    en: {
-        loading: "Loading Analysis...",
-        tabQuality: "Content quality scores",
-        tabSentiment: "Content sentiment scores",
-        tabConsistency: "Content consistency scores",
-        tabOriental: "Eastern Aesthetics Score",
-        headerBalance: "Eastern Aesthetics",
-        headerStyle: "Cultural Style",
-        norm: "Normalized (0-1)",
-        lblVideoAes: "Video aesthetics score",
-        lblReadability: "Text readability",
-        lblCoverQuality: "Cover image quality score",
-        lblCoverAes: "Cover image aesthetics score",
-        lblVoice: "Human voice presence",
-        lblFace: "Human face presence",
-        lblTitleSent: "Title sentiment score",
-        lblTextSent: "Text sentiment score",
-        lblTextArousal: "Text arousal score",
-        lblAudioSent: "Audio sentiment score",
-        lblAudioArousal: "Audio arousal score",
-        lblTitleTags: "Title-tags content consistency",
-        lblTitleCover: "Title-cover image content consistency",
-        lblTitleVideo: "Title-video content consistency",
-        lblTextAudio: "Text-audio sentiment consistency",
-        lblTextVideo: "Text-video sentiment consistency",
-        lblVideoAudio: "Video-audio sentiment consistency",
-        lblRichness: "Richness",
-        lblHarmony: "Harmony",
-        lblAdaption: "Adaption",
-        lblModern: "Modern",
-        lblOriental: "Eastern",
-        lblWestern: "Western",
-        lblControlModern: "Control_Modern_Norm",
-    },
-    zh: {
-        loading: "正在加载分析结果...",
-        tabQuality: "内容质量评分",
-        tabSentiment: "内容情感评分",
-        tabConsistency: "内容一致性评分",
-        tabOriental: "东方美学评分",
-        headerBalance: "东方美学",
-        headerStyle: "文化风格",
-        norm: "归一化 (0-1)",
-        lblVideoAes: "视频美学评分",
-        lblReadability: "文本可读性",
-        lblCoverQuality: "封面图像质量分",
-        lblCoverAes: "封面美学评分",
-        lblVoice: "人声存在",
-        lblFace: "人脸存在",
-        lblTitleSent: "标题情感分",
-        lblTextSent: "文本情感分",
-        lblTextArousal: "文本激活度",
-        lblAudioSent: "音频情感分",
-        lblAudioArousal: "音频激活度",
-        lblTitleTags: "标题-标签内容一致性",
-        lblTitleCover: "标题-封面内容一致性",
-        lblTitleVideo: "标题-视频内容一致性",
-        lblTextAudio: "文本-音频情感一致性",
-        lblTextVideo: "文本-视频情感一致性",
-        lblVideoAudio: "视频-音频情感一致性",
-        lblRichness: "丰富度",
-        lblHarmony: "和谐度",
-        lblAdaption: "适配度",
-        lblModern: "现代",
-        lblOriental: "东方",
-        lblWestern: "西方",
-        lblControlModern: "现代规范控制",
-    }
-};
+  en: {
+    loading: "Loading analysis report...",
+    fetchError: "Failed to load analysis result",
+    pageLabel: "AI Diagnosis Report",
+    pageTitle: "Hotel Video InsightHub",
+    pageIntro: "Turn structured indicators into a management-ready video diagnosis and an execution plan.",
+    currentUpload: "Current upload",
+    reportSource: "Actual upload analysis",
+    fallbackTitle: "Untitled submission",
+    summaryLabel: "Executive Summary",
+    coreProblemLabel: "Core Problem",
+    roiLabel: "Expected ROI",
+    dimensionsLabel: "Dimension Analysis",
+    audienceLabel: "Audience Persona",
+    platformLabel: "Primary Platform",
+    actionsLabel: "Action Plan",
+    metricsLabel: "Underlying Metrics",
+    scoreLocal: "Local score",
+    scoreGlobal: "Global score",
+    metricQuality: "Content quality",
+    metricSentiment: "Sentiment signals",
+    metricConsistency: "Consistency",
+    metricOriental: "Eastern aesthetics",
+    qualityAesthetic: "Video aesthetics",
+    qualityReadability: "Text readability",
+    qualityCover: "Cover quality",
+    qualityCoverAesthetic: "Cover aesthetics",
+    qualityVoice: "Human voice",
+    qualityFace: "Human face",
+    sentimentTitle: "Title sentiment",
+    sentimentText: "Text sentiment",
+    sentimentTextArousal: "Text arousal",
+    sentimentAudio: "Audio sentiment",
+    sentimentAudioArousal: "Audio arousal",
+    consistencyTitleTags: "Title-tags consistency",
+    consistencyTitleCover: "Title-cover consistency",
+    consistencyTitleVideo: "Title-video consistency",
+    consistencyTextAudio: "Text-audio consistency",
+    consistencyTextVideo: "Text-video consistency",
+    consistencyVideoAudio: "Video-audio consistency",
+    orientalRichness: "Richness",
+    orientalHarmony: "Harmony",
+    orientalAdaption: "Adaption",
+    orientalModern: "Modern",
+    orientalOriental: "Eastern",
+    orientalWestern: "Western",
+    personaReasoningLabel: "Why this audience",
+    platformReasoningLabel: "Why this platform",
+    statusReady: "Report generated",
+    statusModel: "Derived from real metrics",
+    noText: "No long caption provided",
+  },
+  zh: {
+    loading: "正在生成分析报告...",
+    fetchError: "分析结果加载失败",
+    pageLabel: "AI 诊断报告",
+    pageTitle: "酒店短视频智算平台",
+    pageIntro: "将结构化指标转成可汇报、可执行、可复盘的酒店短视频诊断报告。",
+    currentUpload: "当前上传内容",
+    reportSource: "实际上传分析",
+    fallbackTitle: "未命名提交",
+    summaryLabel: "执行摘要",
+    coreProblemLabel: "核心问题",
+    roiLabel: "预期收益",
+    dimensionsLabel: "多维度深度剖析",
+    audienceLabel: "目标受众画像",
+    platformLabel: "优选平台",
+    actionsLabel: "优化处方与执行清单",
+    metricsLabel: "底层指标工作台",
+    scoreLocal: "本号预测",
+    scoreGlobal: "全网预测",
+    metricQuality: "内容质量",
+    metricSentiment: "情绪信号",
+    metricConsistency: "一致性",
+    metricOriental: "东方美学",
+    qualityAesthetic: "视频美学评分",
+    qualityReadability: "文本可读性",
+    qualityCover: "封面图像质量分",
+    qualityCoverAesthetic: "封面美学评分",
+    qualityVoice: "人声存在",
+    qualityFace: "人脸存在",
+    sentimentTitle: "标题情感分",
+    sentimentText: "文本情感分",
+    sentimentTextArousal: "文本激活度",
+    sentimentAudio: "音频情感分",
+    sentimentAudioArousal: "音频激活度",
+    consistencyTitleTags: "标题-标签内容一致性",
+    consistencyTitleCover: "标题-封面内容一致性",
+    consistencyTitleVideo: "标题-视频内容一致性",
+    consistencyTextAudio: "文本-音频情感一致性",
+    consistencyTextVideo: "文本-视频情感一致性",
+    consistencyVideoAudio: "视频-音频情感一致性",
+    orientalRichness: "丰富度",
+    orientalHarmony: "和谐度",
+    orientalAdaption: "适配度",
+    orientalModern: "现代",
+    orientalOriental: "东方",
+    orientalWestern: "西方",
+    personaReasoningLabel: "判断依据",
+    platformReasoningLabel: "平台逻辑",
+    statusReady: "报告已生成",
+    statusModel: "基于真实指标推导",
+    noText: "未提供长文案",
+  },
+} as const;
 
-// --- SVG Components ---
+function numberValue(input: string | number | undefined) {
+  if (typeof input === "number") return input;
+  if (!input) return 0;
+  return Number(String(input).replace("%", "")) || 0;
+}
 
-const CircularProgress = ({ value, label, size = 120, color = "#6ae3ff" }: { value: number, label: string, size?: number, color?: string }) => {
-    const radius = size * 0.4;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (value / 100) * circumference;
+function percentText(value: number) {
+  return `${Math.round(value)}%`;
+}
 
-    return (
-        <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-                {/* Track */}
-                <circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke="rgba(255,255,255,0.12)"
-                    strokeWidth="8"
-                    fill="transparent"
-                />
-                {/* Progress */}
-                <circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke={color}
-                    strokeWidth="8"
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    strokeLinecap="round"
-                    style={{ transition: 'stroke-dashoffset 1s ease-out' }}
-                />
-            </svg>
-            <div style={{ position: 'absolute', textAlign: 'center' }}>
-                <div style={{ fontSize: size * 0.22, fontWeight: 700, color: 'var(--text)' }}>{value}%</div>
-            </div>
-        </div>
+function toFixedText(value: number) {
+  return Number(value).toFixed(2);
+}
+
+function isPositiveFlag(value: string | undefined) {
+  if (!value) return false;
+  return value.toLowerCase() === "yes" || value.toLowerCase() === "likely";
+}
+
+function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh" | "en") {
+  const aesthetic = numberValue(data.quality.aesthetic);
+  const readability = numberValue(data.quality.readability);
+  const coverQuality = numberValue(data.quality.coverQuality);
+  const coverAesthetic = numberValue(data.quality.coverAesthetic);
+  const titleVideo = numberValue(data.consistency.titleVideo);
+  const textVideo = numberValue(data.consistency.textVideo);
+  const textAudio = numberValue(data.consistency.textAudio);
+  const audioArousal = numberValue(data.sentiment.audioArousal);
+  const textArousal = numberValue(data.sentiment.textArousal);
+  const harmony = data.orientalAesthetics.harmony;
+  const richness = data.orientalAesthetics.richness;
+  const oriental = data.orientalAesthetics.oriental;
+  const western = data.orientalAesthetics.western;
+  const modern = data.orientalAesthetics.modern;
+  const hasVoice = isPositiveFlag(data.quality.voice);
+  const hasFace = isPositiveFlag(data.quality.face);
+  const globalScore = result?.engagementScore?.global ?? 0;
+  const localScore = result?.engagementScore?.local ?? 0;
+
+  const strongestVisual = coverQuality >= 75 && aesthetic >= 70;
+  const titleGap = titleVideo < 45;
+  const emotionGap = !hasVoice || textAudio < 65 || audioArousal < 55;
+  const readabilityGap = readability < 55;
+
+  if (lang === "zh") {
+    const conclusion = strongestVisual
+      ? `该视频具备较强种草潜力，视觉完成度突出，但仍存在影响分发效率的结构性短板。`
+      : `该视频具备基础传播能力，但画面抓手和内容表达尚未形成高端酒店内容应有的完成度。`;
+
+    const coreProblem = titleGap
+      ? `标题与视频内容一致性仅 ${percentText(titleVideo)}，前几秒的信息承诺与实际画面存在断裂，容易拉高跳出率。`
+      : emotionGap
+        ? `情绪唤起链路偏弱，${hasVoice ? "虽有人声" : "缺少人声"}且文音一致性仅 ${percentText(textAudio)}，信任感和代入感不够。`
+        : `当前瓶颈主要在文案表达层，文本可读性为 ${percentText(readability)}，信息密度与转化表达仍偏“通稿化”。`;
+
+    const expectedRoi = titleGap || emotionGap
+      ? `优先修正标题承诺与情绪引导后，预计可提升 ${percentText(Math.max(globalScore * 0.18, 18))}-${percentText(Math.max(globalScore * 0.32, 30))} 的完播与互动效率。`
+      : `在保留当前视觉优势的前提下，补齐文案与节奏，预计可继续放大 ${percentText(Math.max(globalScore * 0.12, 12))}-${percentText(Math.max(globalScore * 0.22, 22))} 的互动空间。`;
+
+    const targetGroup =
+      harmony >= 0.72 && richness >= 0.62
+        ? "追求审美秩序与度假松弛感的一二线城市女性客群。"
+        : modern >= oriental && modern >= western
+          ? "偏好现代设计、效率决策的都市商旅与轻奢消费人群。"
+          : oriental > western
+            ? "偏好在地文化、东方审美与仪式感住宿体验的人群。"
+            : "更关注氛围感与生活方式表达的泛旅行内容受众。";
+
+    const targetReasoning = `画面和谐度 ${toFixedText(harmony)}、丰富度 ${toFixedText(richness)}，${
+      modern >= oriental && modern >= western
+        ? `同时现代倾向 ${toFixedText(modern)} 更强，说明内容更容易吸引重设计感与品质效率的人群。`
+        : oriental > western
+          ? `东方文化倾向 ${toFixedText(oriental)} 高于西方倾向 ${toFixedText(western)}，更适合承接高质感在地体验心智。`
+          : `整体风格没有明显东方文化优势，更适合走氛围种草和场景消费路线。`
+    }`;
+
+    const platform =
+      coverQuality >= 75 && harmony >= 0.68
+        ? "小红书"
+        : hasVoice && audioArousal >= 60 && textArousal >= 60
+          ? "抖音"
+          : "视频号";
+
+    const platformReasoning =
+      platform === "小红书"
+        ? `封面质量 ${percentText(coverQuality)}、画面和谐度 ${toFixedText(harmony)}，更适合依靠封面点击与搜索长尾承接种草流量。`
+        : platform === "抖音"
+          ? `音频激活度 ${percentText(audioArousal)}、文本激活度 ${percentText(textArousal)} 具备更强的滑动场景抓手，适合快节奏分发。`
+          : `整体内容偏稳态表达，适合在熟人传播与品牌私域链路中承接信任型曝光。`;
+
+    const dimensions = [
+      {
+        title: "视觉与美学",
+        body: `视频美学 ${percentText(aesthetic)}、封面质量 ${percentText(coverQuality)}、封面美学 ${percentText(coverAesthetic)}。${
+          strongestVisual
+            ? "画面有足够的高端感和第一眼抓手，适合承担酒店产品的溢价表达。"
+            : "目前视觉抓手还不够尖锐，封面与首屏还需要更明确地承载卖点。"
+        }`,
+      },
+      {
+        title: "叙事与一致性",
+        body: `标题-视频一致性 ${percentText(titleVideo)}、文本-视频一致性 ${percentText(textVideo)}。${
+          titleGap
+            ? "最大风险不是内容差，而是承诺错位，平台很难准确识别内容标签。"
+            : "主叙事链路基本成立，但还可以进一步压缩无效信息，让卖点更早出现。"
+        }`,
+      },
+      {
+        title: "情感与沉浸感",
+        body: `文本-音频一致性 ${percentText(textAudio)}、音频激活度 ${percentText(audioArousal)}。${
+          emotionGap
+            ? "目前情绪唤起偏弱，缺少带人进入场景的声音或旁白。"
+            : "情绪链路较完整，后续重点是把沉浸感进一步转化为评论和收藏动作。"
+        }`,
+      },
+    ];
+
+    const steps: DiagnosticStep[] = [];
+
+    steps.push(
+      titleGap
+        ? {
+            priority: "P0",
+            tag: "内容重构",
+            title: "先修标题与首屏承诺",
+            detail: `标题-视频一致性只有 ${percentText(titleVideo)}。先把标题改成与画面主卖点直接对应的写实表达，避免“悬念式标题”造成无效点击。`,
+          }
+        : {
+            priority: "P0",
+            tag: "结构优化",
+            title: "把核心卖点提前到前 3 秒",
+            detail: `当前标题与视频基本对齐，下一步应压缩铺垫，让最强场景和最强房型信息更早出现，继续提升首屏留存。`,
+          }
     );
-};
 
-const LinearProgress = ({ value, color = "#6ae3ff" }: { value: number, color?: string }) => {
-    return (
-        <div style={{ width: '100%', height: 8, background: 'rgba(15,23,42,0.08)', borderRadius: 4, overflow: 'hidden', marginTop: 12 }}>
-            <div
-                style={{
-                    width: `${value}%`,
-                    height: '100%',
-                    background: `linear-gradient(90deg, ${color}, #7c8bff)`,
-                    borderRadius: 4,
-                    transition: 'width 1s ease-out'
-                }}
-            />
-        </div>
+    steps.push(
+      emotionGap
+        ? {
+            priority: "P1",
+            tag: "视听优化",
+            title: hasVoice ? "增强原声层次与情绪设计" : "补充旁白或环境原声",
+            detail: `${hasVoice ? "虽然已有音轨，但" : ""}文本-音频一致性为 ${percentText(textAudio)}，音频激活度 ${percentText(audioArousal)}。建议加入开门、落座、窗景、浴缸等场景原声，必要时补轻旁白。`,
+          }
+        : {
+            priority: "P1",
+            tag: "节奏优化",
+            title: "强化镜头切换与情绪峰值",
+            detail: `当前情绪链路基础较好，建议增加 1-2 个明显的情绪峰值镜头，把观众从“看完”推向“想收藏/想咨询”。`,
+          }
     );
-};
 
-const RadarChartTriangle = ({ data, color = "#6ae3ff" }: { data: { label: string, value: number, max: number }[], color?: string }) => {
-    const size = 300;
-    const center = size / 2;
-    const radius = size * 0.35;
-    const angles = [-90, 30, 150];
+    steps.push(
+      readabilityGap
+        ? {
+            priority: "P2",
+            tag: "文案重写",
+            title: "把正文从酒店通稿改成用户视角",
+            detail: `文本可读性仅 ${percentText(readability)}。建议缩短句长，直接提炼 3 个记忆点，用“我住到的感受”替代“酒店官方介绍”。`,
+          }
+        : {
+            priority: "P2",
+            tag: "平台运营",
+            title: "按平台心智重排文案与标签",
+            detail: `在可读性基础尚可的情况下，应围绕 ${platform} 的分发逻辑重新编排标题、正文和标签，保证点击心智与搜索心智统一。`,
+          }
+    );
 
-    const getPoint = (value: number, max: number, angleDeg: number) => {
-        const r = (value / max) * radius;
-        const angleRad = (angleDeg * Math.PI) / 180;
-        return {
-            x: center + r * Math.cos(angleRad),
-            y: center + r * Math.sin(angleRad)
-        };
+    return {
+      conclusion,
+      coreProblem,
+      expectedRoi,
+      targetGroup,
+      targetReasoning,
+      platform,
+      platformReasoning,
+      dimensions,
+      steps,
+      highlightStats: [
+        { label: "本号预测", value: percentText(localScore) },
+        { label: "全网预测", value: percentText(globalScore) },
+        { label: "标题-视频一致性", value: percentText(titleVideo) },
+        { label: "封面质量", value: percentText(coverQuality) },
+      ],
     };
+  }
 
-    const getAxisPoint = (angleDeg: number) => {
-        const angleRad = (angleDeg * Math.PI) / 180;
-        return {
-            x: center + radius * Math.cos(angleRad),
-            y: center + radius * Math.sin(angleRad)
-        };
-    };
+  const conclusion = strongestVisual
+    ? "The video has real seeding potential with strong visual polish, but structural issues are still limiting distribution efficiency."
+    : "The video has baseline distribution potential, but its visual hook and message framing are not yet premium enough.";
 
-    const gridPoints = [0.25, 0.5, 0.75, 1].map(scale =>
-        angles.map(a => getPoint(scale * 10, 10, a))
-    );
+  const coreProblem = titleGap
+    ? `Title-to-video consistency is only ${percentText(titleVideo)}, so the promise made up front is not aligned with the actual footage.`
+    : emotionGap
+      ? `The emotional layer is weak: voice presence is ${hasVoice ? "available" : "missing"} and text-audio consistency is only ${percentText(textAudio)}.`
+      : `The main bottleneck is still copy expression, with text readability at ${percentText(readability)}.`;
 
-    const dataPoints = data.map((d, i) => getPoint(d.value, d.max, angles[i]));
-    const polyString = dataPoints.map(p => `${p.x},${p.y}`).join(" ");
+  const expectedRoi = titleGap || emotionGap
+    ? `Fixing the promise gap and emotional guidance should unlock roughly ${percentText(Math.max(globalScore * 0.18, 18))}-${percentText(Math.max(globalScore * 0.32, 30))} better completion and interaction efficiency.`
+    : `With the current visual advantage preserved, refining copy and pacing should still unlock ${percentText(Math.max(globalScore * 0.12, 12))}-${percentText(Math.max(globalScore * 0.22, 22))} more engagement headroom.`;
 
-    return (
-        <div style={{ position: 'relative', width: size, height: size }}>
-            <svg width={size} height={size}>
-                {angles.map((a, i) => {
-                    const p = getAxisPoint(a);
-                    return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />;
-                })}
-                {gridPoints.map((triangle, i) => (
-                    <polygon
-                        key={i}
-                        points={triangle.map(p => `${p.x},${p.y}`).join(" ")}
-                        fill="none"
-                        stroke="rgba(255,255,255,0.1)"
-                        strokeWidth="1"
-                    />
-                ))}
-                <polygon
-                    points={polyString}
-                    fill={color}
-                    fillOpacity="0.2"
-                    stroke={color}
-                    strokeWidth="2"
-                />
-                {dataPoints.map((p, i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="4" fill="#edf4ff" />
-                ))}
-            </svg>
-            {angles.map((a, i) => {
-                const p = getAxisPoint(a);
-                const xOff = i === 0 ? 0 : (i === 1 ? 20 : -20);
-                const yOff = i === 0 ? -20 : 10;
-                return (
-                    <div
-                        key={i}
-                        style={{
-                            position: 'absolute',
-                            left: p.x + xOff,
-                            top: p.y + yOff,
-                            transform: 'translate(-50%, -50%)',
-                            color: 'var(--muted)',
-                            fontSize: 12,
-                            textAlign: 'center',
-                            width: 100
-                        }}
-                    >
-                        {data[i].label}
-                        <br />
-                        <span style={{ color: 'var(--text)', fontWeight: 600 }}>{data[i].value}</span>
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
+  const targetGroup =
+    harmony >= 0.72 && richness >= 0.62
+      ? "Urban female travelers seeking calm luxury and visual order."
+      : modern >= oriental && modern >= western
+        ? "Design-led business and premium lifestyle travelers."
+        : oriental > western
+          ? "Travelers who value local culture and an Eastern sense of ritual."
+          : "Lifestyle-driven travel audiences focused on atmosphere.";
+
+  const targetReasoning = `Harmony is ${toFixedText(harmony)} and richness is ${toFixedText(richness)}. ${
+    modern >= oriental && modern >= western
+      ? `Modern orientation at ${toFixedText(modern)} suggests stronger appeal to design and efficiency-driven viewers.`
+      : oriental > western
+        ? `Eastern orientation at ${toFixedText(oriental)} is higher than Western at ${toFixedText(western)}, which supports local-culture positioning.`
+        : `The style leans more toward general atmosphere than a distinct cultural narrative.`
+  }`;
+
+  const platform =
+    coverQuality >= 75 && harmony >= 0.68
+      ? "Xiaohongshu"
+      : hasVoice && audioArousal >= 60 && textArousal >= 60
+        ? "Douyin"
+        : "WeChat Video";
+
+  const platformReasoning =
+    platform === "Xiaohongshu"
+      ? `Cover quality at ${percentText(coverQuality)} and harmony at ${toFixedText(harmony)} fit click-through and search-driven seeding better than fast-feed entertainment.`
+      : platform === "Douyin"
+        ? `Audio arousal at ${percentText(audioArousal)} and text arousal at ${percentText(textArousal)} are better suited to fast-scroll distribution.`
+        : `The video currently reads as a steadier brand expression and is better aligned with trust-based exposure.`;
+
+  return {
+    conclusion,
+    coreProblem,
+    expectedRoi,
+    targetGroup,
+    targetReasoning,
+    platform,
+    platformReasoning,
+    dimensions: [
+      {
+        title: "Visual Aesthetics",
+        body: `Video aesthetics is ${percentText(aesthetic)}, cover quality is ${percentText(coverQuality)}, and cover aesthetics is ${percentText(coverAesthetic)}. ${
+          strongestVisual
+            ? "The visual layer already carries premium hotel value."
+            : "The visual hook still needs to be sharper in the cover and early frames."
+        }`,
+      },
+      {
+        title: "Narrative Logic",
+        body: `Title-video consistency is ${percentText(titleVideo)} and text-video consistency is ${percentText(textVideo)}. ${
+          titleGap
+            ? "The issue is not weak content but a mismatched promise."
+            : "The narrative structure works, but the strongest selling point should surface earlier."
+        }`,
+      },
+      {
+        title: "Emotional Resonance",
+        body: `Text-audio consistency is ${percentText(textAudio)} and audio arousal is ${percentText(audioArousal)}. ${
+          emotionGap
+            ? "The emotional bridge into the scene is still too weak."
+            : "The emotional chain is in place and can be pushed toward more saves and comments."
+        }`,
+      },
+    ],
+    steps: [
+      titleGap
+        ? {
+            priority: "P0",
+            tag: "Content",
+            title: "Rewrite the opening promise",
+            detail: `Title-video consistency is only ${percentText(titleVideo)}. Replace vague curiosity hooks with a direct statement of the real visual payoff.`,
+          }
+        : {
+            priority: "P0",
+            tag: "Structure",
+            title: "Move the strongest scene into the first 3 seconds",
+            detail: "The content is aligned enough. The next gain comes from surfacing the strongest room or view earlier.",
+          },
+      emotionGap
+        ? {
+            priority: "P1",
+            tag: "Audio",
+            title: hasVoice ? "Increase sonic texture" : "Add voice or environmental sound",
+            detail: `Text-audio consistency is ${percentText(textAudio)} and audio arousal is ${percentText(audioArousal)}. Layer in opening, walking, water, or window-side sound cues.`,
+          }
+        : {
+            priority: "P1",
+            tag: "Pacing",
+            title: "Add one stronger emotional peak",
+            detail: "The emotional base is working. Add one clearer release moment to drive saves and comments.",
+          },
+      readabilityGap
+        ? {
+            priority: "P2",
+            tag: "Copy",
+            title: "Rewrite the caption from the traveler perspective",
+            detail: `Readability is only ${percentText(readability)}. Shorten sentences and reduce brochure-style description.`,
+          }
+        : {
+            priority: "P2",
+            tag: "Ops",
+            title: "Re-sequence copy for platform fit",
+            detail: `The copy foundation is acceptable. Now optimize title, caption, and tags specifically for ${platform}.`,
+          },
+    ],
+    highlightStats: [
+      { label: "Local score", value: percentText(localScore) },
+      { label: "Global score", value: percentText(globalScore) },
+      { label: "Title-video", value: percentText(titleVideo) },
+      { label: "Cover quality", value: percentText(coverQuality) },
+    ],
+  };
+}
+
+function MetricGrid({
+  items,
+}: {
+  items: { label: string; value: string }[];
+}) {
+  return (
+    <div className="diagnosis-metric-grid">
+      {items.map((item) => (
+        <article key={item.label} className="diagnosis-metric-card">
+          <div className="diagnosis-metric-label">{item.label}</div>
+          <div className="diagnosis-metric-value">{item.value}</div>
+        </article>
+      ))}
+    </div>
+  );
+}
 
 export default function AnalysisPage({ params }: { params: { id: string } }) {
-    const { lang } = useLanguage();
-    const t = copy[lang];
-    const tooltips = TOOLTIPS[lang];
+  const { lang } = useLanguage();
+  const t = copy[lang];
+  const [activeTab, setActiveTab] = useState<MetricTabKey>("quality");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<ResultData | null>(null);
+  const [submissionInput, setSubmissionInput] = useState<SubmissionInput | null>(null);
 
-    const [activeTab, setActiveTab] = useState<"quality" | "sentiment" | "consistency" | "oriental">("quality");
-    const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-    const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<any>(null); // To store valid structure
-    const [submissionInput, setSubmissionInput] = useState<any>(null);
-    const [resultSource, setResultSource] = useState<string>("");
-    const router = useRouter();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/tasks/${params.id}`);
+        if (!res.ok) {
+          setError(t.fetchError);
+          setLoading(false);
+          return;
+        }
 
-    const handleMouseMove = (e: React.MouseEvent) => {
-        setMousePos({ x: e.clientX, y: e.clientY });
+        const json = await res.json();
+        if (json.status === "COMPLETED" && json.resultData) {
+          const parsedResult = JSON.parse(json.resultData) as ResultData;
+          const input = json.inputData ? (JSON.parse(json.inputData) as SubmissionInput) : null;
+          setResult(parsedResult);
+          setSubmissionInput(input);
+          setLoading(false);
+          return;
+        }
+
+        setError(t.fetchError);
+        setLoading(false);
+      } catch (requestError) {
+        console.error(requestError);
+        setError(t.fetchError);
+        setLoading(false);
+      }
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch(`/api/tasks/${params.id}`);
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.status === 'COMPLETED' && json.resultData) {
-                        const result = JSON.parse(json.resultData);
-                        const input = json.inputData ? JSON.parse(json.inputData) : null;
-                        setData(result.analysis);
-                        setSubmissionInput(input);
-                        setResultSource(result.source || "");
-                        setLoading(false);
-                    } else if (json.status === 'PROCESSING' || json.status === 'PENDING') {
-                        // Redirect back to prediction if not ready?? Or show loading?
-                        // Better to just tell user it's processing
-                        // For now, let's just wait a bit or auto-refresh?
-                        // The user usually comes here FROM prediction page which confirms completion.
-                        // But if refreshed, might need to re-poll?
-                        // Let's assume completed for simplicity or simple polling
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        };
-        fetchData();
-    }, [params.id]);
+    fetchData();
+  }, [params.id, t.fetchError]);
 
-
-    // Enhanced Metric Card
-    const MetricCard = ({ label, value, type = "score", maxValue = 100 }: { label: string, value: string | number, type?: "score" | "binary" | "percent", maxValue?: number }) => {
-        const isPercent = typeof value === 'string' && value.includes('%');
-        const numValue = isPercent ? parseInt(value as string) : (typeof value === 'number' ? value : 0);
-
-        return (
-            <div
-                className="metric-card glass-card"
-                onMouseEnter={() => setHoveredMetric(label)}
-                onMouseLeave={() => setHoveredMetric(null)}
-                onMouseMove={handleMouseMove}
-                style={{
-                    background: 'var(--panel-strong)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 16,
-                    padding: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: 160,
-                    position: 'relative',
-                    cursor: 'help',
-                    transition: 'all 0.3s ease'
-                }}
-            >
-                <div style={{ marginBottom: 16, fontSize: 13, color: 'var(--muted)', textAlign: 'center', minHeight: 40, display: 'flex', alignItems: 'center' }}>
-                    {label}
-                </div>
-
-                {isPercent ? (
-                    <CircularProgress value={numValue} label={label} />
-                ) : (
-                    <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text)' }}>
-                        {value}
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    // Bar Metric Card
-    const BarMetricCard = ({ label, value }: { label: string, value: string }) => {
-        const numValue = parseInt(value);
-        return (
-            <div
-                className="metric-card glass-card"
-                onMouseEnter={() => setHoveredMetric(label)}
-                onMouseLeave={() => setHoveredMetric(null)}
-                onMouseMove={handleMouseMove}
-                style={{
-                    background: 'var(--panel-strong)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 16,
-                    padding: 24,
-                    minHeight: 100,
-                    position: 'relative',
-                    cursor: 'help',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                }}
-            >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, color: 'var(--muted)', maxWidth: '80%' }}>{label}</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>{value}</div>
-                </div>
-                <LinearProgress value={numValue} />
-            </div>
-        );
-    };
-
-    if (loading || !data) {
-        return (
-            <div className="page workspace-page workspace-soft" style={{ position: 'relative' }}>
-                <Navbar />
-                <div className="loader" style={{ textAlign: 'center', padding: '100px 0' }}>
-                    <div className="spinner" style={{ margin: '0 auto' }}></div>
-                    <p className="muted" style={{ marginTop: 24, color: 'var(--text)' }}>{t.loading}</p>
-                </div>
-            </div>
-        )
-    }
-
+  if (loading || !result?.analysis) {
     return (
-        <div className="page workspace-page workspace-soft" style={{ position: 'relative' }}>
-            <Navbar />
-
-            {/* Custom Chat-Style Floating Tooltip */}
-            {hoveredMetric && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: mousePos.y + 20,
-                        left: mousePos.x + 20,
-                        maxWidth: 300,
-                        background: 'rgba(27, 39, 67, 0.96)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(15,23,42,0.12)',
-                        borderRadius: '4px 12px 12px 12px',
-                        padding: '16px',
-                        zIndex: 9999,
-                        boxShadow: '0 12px 32px rgba(15,23,42,0.12)',
-                        pointerEvents: 'none',
-                        animation: 'fadeIn 0.2s ease-out'
-                    }}
-                >
-                    <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
-                        {hoveredMetric}
-                    </div>
-                    <div style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.5 }}>
-                        {tooltips[hoveredMetric as keyof typeof tooltips]}
-                    </div>
-                </div>
-            )}
-
-            <div className="tabs" style={{ display: 'flex', gap: 10, marginTop: 32, flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button className={`ghost-button ${activeTab === 'quality' ? 'active' : ''}`} onClick={() => setActiveTab('quality')}>{t.tabQuality}</button>
-                <button className={`ghost-button ${activeTab === 'sentiment' ? 'active' : ''}`} onClick={() => setActiveTab('sentiment')}>{t.tabSentiment}</button>
-                <button className={`ghost-button ${activeTab === 'consistency' ? 'active' : ''}`} onClick={() => setActiveTab('consistency')}>{t.tabConsistency}</button>
-                <button className={`ghost-button ${activeTab === 'oriental' ? 'active' : ''}`} onClick={() => setActiveTab('oriental')}>{t.tabOriental}</button>
-            </div>
-
-            {submissionInput && (
-                <section
-                    className="glass fade-up workspace-panel"
-                    style={{
-                        marginTop: 20,
-                        padding: 24,
-                        display: 'grid',
-                        gridTemplateColumns: submissionInput.coverPath ? '120px 1fr' : '1fr',
-                        gap: 20,
-                        alignItems: 'center'
-                    }}
-                >
-                    {submissionInput.coverPath && (
-                        <img
-                            src={submissionInput.coverPath}
-                            alt={submissionInput.title || 'cover'}
-                            style={{
-                                width: 120,
-                                height: 160,
-                                objectFit: 'cover',
-                                borderRadius: 12,
-                                border: '1px solid rgba(15,23,42,0.08)'
-                            }}
-                        />
-                    )}
-                    <div>
-                        <div className="muted tiny" style={{ marginBottom: 8 }}>
-                            {resultSource === 'actual-upload' ? 'Actual upload analysis' : 'Analysis result'}
-                        </div>
-                        <h3 style={{ marginTop: 0, marginBottom: 8, color: 'var(--text)' }}>
-                            {submissionInput.title || (lang === 'en' ? 'Untitled submission' : '未命名提交')}
-                        </h3>
-                        {submissionInput.textContent && (
-                            <p className="muted" style={{ marginTop: 0, lineHeight: 1.6 }}>
-                                {submissionInput.textContent.slice(0, 180)}
-                                {submissionInput.textContent.length > 180 ? '...' : ''}
-                            </p>
-                        )}
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                            {(submissionInput.tags || []).map((tag: string) => (
-                                <span
-                                    key={tag}
-                                    style={{
-                                        padding: '6px 10px',
-                                        borderRadius: 999,
-                                        background: 'rgba(122, 166, 255, 0.12)',
-                                        border: '1px solid rgba(140, 198, 255, 0.18)',
-                                        color: 'var(--text)',
-                                        fontSize: 12
-                                    }}
-                                >
-                                    #{tag}
-                                </span>
-                            ))}
-                        </div>
-                        <div className="muted tiny" style={{ marginTop: 12 }}>
-                            {submissionInput.videoName ? `Video: ${submissionInput.videoName}` : ''}
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            <section className="analysis-section glass fade-up delay-1 workspace-panel" style={{ padding: 40, marginTop: 24, minHeight: 500 }}>
-
-                {activeTab === 'quality' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
-                        <MetricCard label={t.lblVideoAes} value={data.quality.aesthetic} />
-                        <MetricCard label={t.lblReadability} value={data.quality.readability} />
-                        <MetricCard label={t.lblCoverQuality} value={data.quality.coverQuality} />
-                        <MetricCard label={t.lblCoverAes} value={data.quality.coverAesthetic} />
-                        <MetricCard label={t.lblVoice} value={data.quality.voice} type="binary" />
-                        <MetricCard label={t.lblFace} value={data.quality.face} type="binary" />
-                    </div>
-                )}
-
-                {activeTab === 'sentiment' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
-                        <MetricCard label={t.lblTitleSent} value={data.sentiment.title} />
-                        <MetricCard label={t.lblTextSent} value={data.sentiment.text} />
-                        <MetricCard label={t.lblTextArousal} value={data.sentiment.textArousal} />
-                        <MetricCard label={t.lblAudioSent} value={data.sentiment.audio} />
-                        <MetricCard label={t.lblAudioArousal} value={data.sentiment.audioArousal} />
-                    </div>
-                )}
-
-                {activeTab === 'consistency' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: 24 }}>
-                        <BarMetricCard label={t.lblTitleTags} value={data.consistency.titleTags} />
-                        <BarMetricCard label={t.lblTitleCover} value={data.consistency.titleCover} />
-                        <BarMetricCard label={t.lblTitleVideo} value={data.consistency.titleVideo} />
-                        <BarMetricCard label={t.lblTextAudio} value={data.consistency.textAudio} />
-                        <BarMetricCard label={t.lblTextVideo} value={data.consistency.textVideo} />
-                        <BarMetricCard label={t.lblVideoAudio} value={data.consistency.videoAudio} />
-                    </div>
-                )}
-
-                {activeTab === 'oriental' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }}>
-                        {/* Radar 1 */}
-                        <div className="radar-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                            onMouseEnter={() => setHoveredMetric(t.lblRichness)}
-                            onMouseLeave={() => setHoveredMetric(null)}
-                            onMouseMove={handleMouseMove}
-                        >
-                            <h3 style={{ color: 'var(--text)', marginBottom: 20 }}>{t.headerBalance}</h3>
-                            <RadarChartTriangle
-                                data={[
-                                    { label: t.lblRichness, value: data.orientalAesthetics.richness, max: 1 },
-                                    { label: t.lblHarmony, value: data.orientalAesthetics.harmony, max: 1 },
-                                    { label: t.lblAdaption, value: data.orientalAesthetics.adaption, max: 1 }
-                                ]}
-                                color="#6ae3ff"
-                            />
-                            <div className="muted tiny" style={{ marginTop: 10 }}>{t.norm}</div>
-                        </div>
-
-                        {/* Radar 2 */}
-                        <div className="radar-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                            onMouseEnter={() => setHoveredMetric(t.lblControlModern)}
-                            onMouseLeave={() => setHoveredMetric(null)}
-                            onMouseMove={handleMouseMove}
-                        >
-                            <h3 style={{ color: 'var(--text)', marginBottom: 20 }}>{t.headerStyle}</h3>
-                            <RadarChartTriangle
-                                data={[
-                                    { label: t.lblModern, value: data.orientalAesthetics.modern, max: 1 },
-                                    { label: t.lblOriental, value: data.orientalAesthetics.oriental, max: 1 },
-                                    { label: t.lblWestern, value: data.orientalAesthetics.western, max: 1 }
-                                ]}
-                                color="#facc15"
-                            />
-                            <div className="muted tiny" style={{ marginTop: 10 }}>{t.norm}</div>
-                        </div>
-                    </div>
-                )}
-            </section>
-        </div>
+      <div className="page workspace-page workspace-soft analysis-page diagnosis-page">
+        <Navbar />
+        <section className="diagnosis-loading-panel">
+          <div className="spinner" />
+          <p className="muted">{error || t.loading}</p>
+        </section>
+      </div>
     );
+  }
+
+  const diagnosis = buildDiagnosis(result.analysis, result, lang);
+  const tabItems: Record<MetricTabKey, { title: string; items: { label: string; value: string }[] }> = {
+    quality: {
+      title: t.metricQuality,
+      items: [
+        { label: t.qualityAesthetic, value: result.analysis.quality.aesthetic },
+        { label: t.qualityReadability, value: result.analysis.quality.readability },
+        { label: t.qualityCover, value: result.analysis.quality.coverQuality },
+        { label: t.qualityCoverAesthetic, value: result.analysis.quality.coverAesthetic },
+        { label: t.qualityVoice, value: result.analysis.quality.voice },
+        { label: t.qualityFace, value: result.analysis.quality.face },
+      ],
+    },
+    sentiment: {
+      title: t.metricSentiment,
+      items: [
+        { label: t.sentimentTitle, value: result.analysis.sentiment.title },
+        { label: t.sentimentText, value: result.analysis.sentiment.text },
+        { label: t.sentimentTextArousal, value: result.analysis.sentiment.textArousal },
+        { label: t.sentimentAudio, value: result.analysis.sentiment.audio },
+        { label: t.sentimentAudioArousal, value: result.analysis.sentiment.audioArousal },
+      ],
+    },
+    consistency: {
+      title: t.metricConsistency,
+      items: [
+        { label: t.consistencyTitleTags, value: result.analysis.consistency.titleTags },
+        { label: t.consistencyTitleCover, value: result.analysis.consistency.titleCover },
+        { label: t.consistencyTitleVideo, value: result.analysis.consistency.titleVideo },
+        { label: t.consistencyTextAudio, value: result.analysis.consistency.textAudio },
+        { label: t.consistencyTextVideo, value: result.analysis.consistency.textVideo },
+        { label: t.consistencyVideoAudio, value: result.analysis.consistency.videoAudio },
+      ],
+    },
+    oriental: {
+      title: t.metricOriental,
+      items: [
+        { label: t.orientalRichness, value: toFixedText(result.analysis.orientalAesthetics.richness) },
+        { label: t.orientalHarmony, value: toFixedText(result.analysis.orientalAesthetics.harmony) },
+        { label: t.orientalAdaption, value: toFixedText(result.analysis.orientalAesthetics.adaption) },
+        { label: t.orientalModern, value: toFixedText(result.analysis.orientalAesthetics.modern) },
+        { label: t.orientalOriental, value: toFixedText(result.analysis.orientalAesthetics.oriental) },
+        { label: t.orientalWestern, value: toFixedText(result.analysis.orientalAesthetics.western) },
+      ],
+    },
+  };
+
+  return (
+    <div className="page workspace-page workspace-soft analysis-page diagnosis-page">
+      <Navbar />
+
+      <section className="diagnosis-hero">
+        <div className="diagnosis-hero-copy">
+          <div className="diagnosis-kicker">{t.pageLabel}</div>
+          <h1>{submissionInput?.title || t.fallbackTitle}</h1>
+          <p>{t.pageIntro}</p>
+          <div className="diagnosis-status-row">
+            <span className="diagnosis-status-chip">{t.statusReady}</span>
+            <span className="diagnosis-status-chip subtle">{t.statusModel}</span>
+          </div>
+        </div>
+
+        <div className="diagnosis-hero-panel">
+          <div className="diagnosis-panel-label">{t.currentUpload}</div>
+          <div className="diagnosis-panel-title">{submissionInput?.videoName || submissionInput?.title || t.fallbackTitle}</div>
+          <div className="diagnosis-panel-copy">{submissionInput?.textContent || t.noText}</div>
+          {(submissionInput?.tags?.length ?? 0) > 0 && (
+            <div className="diagnosis-tag-row">
+              {submissionInput?.tags?.map((tag) => (
+                <span key={tag} className="diagnosis-tag">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="diagnosis-report-grid">
+        <article className="diagnosis-summary-card">
+          <div className="diagnosis-section-label">{t.summaryLabel}</div>
+          <h2>{diagnosis.conclusion}</h2>
+          <div className="diagnosis-summary-split">
+            <div>
+              <div className="diagnosis-sub-label">{t.coreProblemLabel}</div>
+              <p>{diagnosis.coreProblem}</p>
+            </div>
+            <div>
+              <div className="diagnosis-sub-label">{t.roiLabel}</div>
+              <p>{diagnosis.expectedRoi}</p>
+            </div>
+          </div>
+        </article>
+
+        <aside className="diagnosis-highlight-panel">
+          {diagnosis.highlightStats.map((item) => (
+            <div key={item.label} className="diagnosis-highlight-item">
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+            </div>
+          ))}
+        </aside>
+      </section>
+
+      {submissionInput?.coverPath && (
+        <section className="diagnosis-cover-strip">
+          <img src={submissionInput.coverPath} alt={submissionInput.title || "cover"} />
+          <div className="diagnosis-cover-copy">
+            <div className="diagnosis-section-label">{t.reportSource}</div>
+            <h3>{t.pageTitle}</h3>
+            <p>{diagnosis.conclusion}</p>
+          </div>
+        </section>
+      )}
+
+      <section className="diagnosis-detail-grid">
+        <article className="diagnosis-card">
+          <div className="diagnosis-section-label">{t.dimensionsLabel}</div>
+          <div className="diagnosis-dimension-list">
+            {diagnosis.dimensions.map((item) => (
+              <div key={item.title} className="diagnosis-dimension-item">
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <div className="diagnosis-side-stack">
+          <article className="diagnosis-card compact">
+            <div className="diagnosis-section-label">{t.audienceLabel}</div>
+            <h3>{diagnosis.targetGroup}</h3>
+            <div className="diagnosis-sub-label">{t.personaReasoningLabel}</div>
+            <p>{diagnosis.targetReasoning}</p>
+          </article>
+
+          <article className="diagnosis-card compact">
+            <div className="diagnosis-section-label">{t.platformLabel}</div>
+            <h3>{diagnosis.platform}</h3>
+            <div className="diagnosis-sub-label">{t.platformReasoningLabel}</div>
+            <p>{diagnosis.platformReasoning}</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="diagnosis-card">
+        <div className="diagnosis-section-label">{t.actionsLabel}</div>
+        <div className="diagnosis-action-grid">
+          {diagnosis.steps.map((step) => (
+            <article key={`${step.priority}-${step.title}`} className="diagnosis-action-item">
+              <div className="diagnosis-action-top">
+                <span className="diagnosis-priority">{step.priority}</span>
+                <span className="diagnosis-action-tag">{step.tag}</span>
+              </div>
+              <h3>{step.title}</h3>
+              <p>{step.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="diagnosis-card">
+        <div className="diagnosis-metrics-head">
+          <div>
+            <div className="diagnosis-section-label">{t.metricsLabel}</div>
+            <h3>{tabItems[activeTab].title}</h3>
+          </div>
+          <div className="diagnosis-tab-row">
+            {(
+              [
+                ["quality", t.metricQuality],
+                ["sentiment", t.metricSentiment],
+                ["consistency", t.metricConsistency],
+                ["oriental", t.metricOriental],
+              ] as [MetricTabKey, string][]
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`diagnosis-tab ${activeTab === key ? "active" : ""}`}
+                onClick={() => setActiveTab(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <MetricGrid items={tabItems[activeTab].items} />
+      </section>
+    </div>
+  );
 }
