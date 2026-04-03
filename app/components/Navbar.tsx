@@ -18,6 +18,7 @@ const copy = {
         navHistory: "History",
         navAdmin: "Admin",
         navHome: "Home",
+        navProfile: "Profile",
         logout: "Logout",
     },
     zh: {
@@ -31,6 +32,7 @@ const copy = {
         navHistory: "历史记录",
         navAdmin: "管理后台",
         navHome: "首页",
+        navProfile: "个人中心",
         logout: "退出",
     },
 };
@@ -64,6 +66,11 @@ export default function Navbar() {
                 label: t.navAdmin,
                 href: "/admin"
             });
+        } else {
+            navItems.push({
+                label: t.navProfile,
+                href: "/profile"
+            });
         }
     }
 
@@ -74,9 +81,6 @@ export default function Navbar() {
             <div className="topbar">
                 <div className="brand">
                     <div className="brand-title">{t.brand}</div>
-                    <div className="brand-sub">
-                        {lang === "en" ? "Hotel short-video intelligence workspace" : "酒店短视频分析与预测系统"}
-                    </div>
                 </div>
                 <div className="nav-links">
                     {navItems.map((item) => {

@@ -164,7 +164,7 @@ export default function LoginCard() {
 
         const success = await login(form.account, form.password);
         if (success) {
-            router.push('/upload');
+            router.push(loginMode === "admin" ? '/admin' : '/profile');
         } else {
             setMessage(lang === "en" ? "Invalid credentials" : "账号或密码错误");
         }
@@ -186,7 +186,7 @@ export default function LoginCard() {
                     
                     <button 
                         className="primary-button" 
-                        onClick={() => router.push(isAdminRole(user.role) ? '/admin' : '/upload')}
+                        onClick={() => router.push(isAdminRole(user.role) ? '/admin' : '/profile')}
                         style={{ marginBottom: 16 }}
                     >
                         {copyLabel("goToWorkspace")}
