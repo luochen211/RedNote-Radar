@@ -19,7 +19,6 @@ const copy = {
         loading: "Loading...",
         noHistory: "No history found.",
         untitled: "Untitled",
-        viewPrediction: "Prediction",
         viewAnalysis: "Analysis",
         status: {
             COMPLETED: "COMPLETED",
@@ -33,7 +32,6 @@ const copy = {
         loading: "加载中...",
         noHistory: "暂无历史记录。",
         untitled: "未命名",
-        viewPrediction: "预测详情",
         viewAnalysis: "分析详情",
         status: {
             COMPLETED: "已完成",
@@ -113,9 +111,6 @@ export default function HistoryPage() {
                                         }}>
                                             {t.status[item.status as keyof typeof t.status] || item.status}
                                         </div>
-                                        <Link href={`/prediction/${item.id}`} className="ghost-button">
-                                            {t.viewPrediction}
-                                        </Link>
                                         {item.status === 'COMPLETED' && (
                                             <Link href={`/analysis/${item.id}`} className="ghost-button">
                                                 {t.viewAnalysis}

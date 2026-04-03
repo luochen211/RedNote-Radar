@@ -170,24 +170,24 @@ export default function Modules() {
                     gap: 16px;
                 }
                 .doc-sheet-card {
-                    background: #ffffff;
-                    border: 1px solid rgba(15, 23, 42, 0.1);
+                    background: linear-gradient(180deg, rgba(21, 30, 46, 0.94) 0%, rgba(15, 23, 38, 0.94) 100%);
+                    border: 1px solid rgba(148, 163, 184, 0.18);
                     border-radius: 18px;
                     overflow: hidden;
-                    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+                    box-shadow: 0 18px 40px rgba(3, 7, 18, 0.28);
                 }
                 .doc-sheet-head {
                     display: flex;
                     gap: 14px;
                     align-items: center;
                     padding: 18px 20px;
-                    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-                    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+                    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+                    background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(21, 30, 46, 0.78) 100%);
                 }
                 .doc-sheet-head h4 {
                     margin: 0;
                     font-size: 18px;
-                    color: #0f172a;
+                    color: #f8fbff;
                     line-height: 1.4;
                 }
                 .doc-sheet-index {
@@ -196,12 +196,12 @@ export default function Modules() {
                     border-radius: 12px;
                     display: grid;
                     place-items: center;
-                    background: #e2e8f0;
-                    color: #334155;
+                    background: rgba(6, 182, 212, 0.12);
+                    color: #8be9ff;
                     font-weight: 700;
                     letter-spacing: 0.08em;
                     font-family: monospace;
-                    border: 1px solid rgba(148, 163, 184, 0.22);
+                    border: 1px solid rgba(6, 182, 212, 0.24);
                 }
                 .doc-sheet-body {
                     padding: 8px 20px 20px;
@@ -211,13 +211,13 @@ export default function Modules() {
                     grid-template-columns: 132px 1fr;
                     gap: 14px;
                     padding: 14px 0;
-                    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+                    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
                 }
                 .doc-line:last-child {
                     border-bottom: none;
                 }
                 .doc-line span {
-                    color: #64748b;
+                    color: #7dd3fc;
                     font-size: 12px;
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
@@ -225,12 +225,12 @@ export default function Modules() {
                 }
                 .doc-line p {
                     margin: 0;
-                    color: #1e293b;
+                    color: #d8e4f5;
                     line-height: 1.7;
                     font-size: 14px;
                 }
                 .doc-line.note p {
-                    color: #475569;
+                    color: #a8bdd8;
                 }
                 @media (max-width: 640px) {
                     .doc-line {

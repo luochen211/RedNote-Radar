@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -33,6 +33,7 @@ const copy = {
 };
 
 export default function PredictionPage({ params }: { params: { id: string } }) {
+    const router = useRouter();
     const { lang } = useLanguage();
     const t = copy[lang];
     const [loading, setLoading] = useState(true);
@@ -92,6 +93,12 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
         };
     }, [params.id, t]);
 
+    useEffect(() => {
+        if (!loading && !error) {
+            router.replace(`/analysis/${params.id}`);
+        }
+    }, [error, loading, params.id, router]);
+
     // Helper to calculate rotation
     // Score 0-100? Docs say "prediction of probability". 
     // Requirement 4.73: 0-100.
@@ -137,6 +144,15 @@ export default function PredictionPage({ params }: { params: { id: string } }) {
                                 )}
                             </div>
                         )}
+
+                        <div className="glass workspace-panel prediction-hero-card" style={{ marginBottom: 24, padding: 24, borderRadius: 16 }}>
+                            <div className="muted tiny" style={{ marginBottom: 8 }}>
+                                {lang === 'en' ? 'Redirecting' : '正在跳转'}
+                            </div>
+                            <h3 style={{ margin: 0, color: 'var(--text)' }}>
+                                {lang === 'en' ? 'Opening merged analysis page...' : '正在进入统一分析详情页...'}
+                            </h3>
+                        </div>
 
                         {/* Local Scope */}
                         <div className="result-block glass workspace-panel prediction-result-card" style={{ marginBottom: 24, padding: 32, borderRadius: 16 }}>

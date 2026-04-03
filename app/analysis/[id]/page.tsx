@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import { useLanguage } from "../../context/LanguageContext";
@@ -63,6 +64,7 @@ type DiagnosticStep = {
 };
 
 type MetricTabKey = "quality" | "sentiment" | "consistency" | "oriental";
+type TaskStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 const copy = {
   en: {
@@ -113,9 +115,17 @@ const copy = {
     orientalWestern: "Western",
     personaReasoningLabel: "Why this audience",
     platformReasoningLabel: "Why this platform",
+    scoreSnapshotLabel: "Score Snapshot",
     statusReady: "Report generated",
     statusModel: "Derived from real metrics",
     noText: "No long caption provided",
+    processingLabel: "Prediction in progress",
+    processingDesc: "The task is still generating scores. Core upload data stays visible first, and AI diagnosis will appear after prediction completes.",
+    predictionPrimaryLabel: "Prediction Overview",
+    predictionPrimaryDesc: "Core task details and prediction scores are the primary layer. AI interpretation follows after the numeric result.",
+    analysisSecondaryLabel: "AI Diagnosis",
+    pendingScore: "Pending",
+    failedLabel: "Task failed",
   },
   zh: {
     loading: "正在生成分析报告...",
@@ -165,9 +175,17 @@ const copy = {
     orientalWestern: "西方",
     personaReasoningLabel: "判断依据",
     platformReasoningLabel: "平台逻辑",
+    scoreSnapshotLabel: "预测快照",
     statusReady: "报告已生成",
     statusModel: "基于真实指标推导",
     noText: "未提供长文案",
+    processingLabel: "预测进行中",
+    processingDesc: "当前任务仍在生成预测分数。页面会优先展示上传参数与预测区，AI 诊断在分数生成后自动补齐。",
+    predictionPrimaryLabel: "预测详情总览",
+    predictionPrimaryDesc: "本页以任务参数和预测分数为主，AI 解读作为第二层补充信息展示。",
+    analysisSecondaryLabel: "AI 诊断分析",
+    pendingScore: "计算中",
+    failedLabel: "任务失败",
   },
 } as const;
 
@@ -183,6 +201,11 @@ function percentText(value: number) {
 
 function toFixedText(value: number) {
   return Number(value).toFixed(2);
+}
+
+function getRotation(value: number) {
+  const clamped = Math.max(0, Math.min(100, value));
+  return (clamped / 100) * 180;
 }
 
 function isPositiveFlag(value: string | undefined) {
@@ -509,96 +532,111 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState<MetricTabKey>("quality");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState<TaskStatus>("PENDING");
   const [result, setResult] = useState<ResultData | null>(null);
   const [submissionInput, setSubmissionInput] = useState<SubmissionInput | null>(null);
+  const [localScore, setLocalScore] = useState(0);
+  const [globalScore, setGlobalScore] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+    let interval: NodeJS.Timeout | null = null;
+
     const fetchData = async () => {
       try {
         const res = await fetch(`/api/tasks/${params.id}`);
         if (!res.ok) {
+          if (!isMounted) return;
           setError(t.fetchError);
           setLoading(false);
           return;
         }
 
         const json = await res.json();
+        const input = json.inputData ? (JSON.parse(json.inputData) as SubmissionInput) : null;
+        if (!isMounted) return;
+
+        setSubmissionInput(input);
+        setStatus(json.status as TaskStatus);
+
         if (json.status === "COMPLETED" && json.resultData) {
           const parsedResult = JSON.parse(json.resultData) as ResultData;
-          const input = json.inputData ? (JSON.parse(json.inputData) as SubmissionInput) : null;
           setResult(parsedResult);
-          setSubmissionInput(input);
+          setLocalScore(parsedResult.engagementScore?.local ?? 0);
+          setGlobalScore(parsedResult.engagementScore?.global ?? 0);
           setLoading(false);
+          if (interval) clearInterval(interval);
           return;
         }
 
-        setError(t.fetchError);
+        if (json.status === "FAILED") {
+          setError(t.failedLabel);
+          setLoading(false);
+          if (interval) clearInterval(interval);
+          return;
+        }
+
         setLoading(false);
       } catch (requestError) {
         console.error(requestError);
+        if (!isMounted) return;
         setError(t.fetchError);
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [params.id, t.fetchError]);
+    void fetchData();
+    interval = setInterval(fetchData, 2000);
 
-  if (loading || !result?.analysis) {
-    return (
-      <div className="page workspace-page workspace-soft analysis-page diagnosis-page">
-        <Navbar />
-        <section className="diagnosis-loading-panel">
-          <div className="spinner" />
-          <p className="muted">{error || t.loading}</p>
-        </section>
-      </div>
-    );
-  }
+    return () => {
+      isMounted = false;
+      if (interval) clearInterval(interval);
+    };
+  }, [params.id, t.failedLabel, t.fetchError]);
 
-  const diagnosis = buildDiagnosis(result.analysis, result, lang);
+  const diagnosis = result?.analysis ? buildDiagnosis(result.analysis, result, lang) : null;
   const tabItems: Record<MetricTabKey, { title: string; items: { label: string; value: string }[] }> = {
     quality: {
       title: t.metricQuality,
       items: [
-        { label: t.qualityAesthetic, value: result.analysis.quality.aesthetic },
-        { label: t.qualityReadability, value: result.analysis.quality.readability },
-        { label: t.qualityCover, value: result.analysis.quality.coverQuality },
-        { label: t.qualityCoverAesthetic, value: result.analysis.quality.coverAesthetic },
-        { label: t.qualityVoice, value: result.analysis.quality.voice },
-        { label: t.qualityFace, value: result.analysis.quality.face },
+        { label: t.qualityAesthetic, value: result?.analysis.quality.aesthetic ?? t.pendingScore },
+        { label: t.qualityReadability, value: result?.analysis.quality.readability ?? t.pendingScore },
+        { label: t.qualityCover, value: result?.analysis.quality.coverQuality ?? t.pendingScore },
+        { label: t.qualityCoverAesthetic, value: result?.analysis.quality.coverAesthetic ?? t.pendingScore },
+        { label: t.qualityVoice, value: result?.analysis.quality.voice ?? t.pendingScore },
+        { label: t.qualityFace, value: result?.analysis.quality.face ?? t.pendingScore },
       ],
     },
     sentiment: {
       title: t.metricSentiment,
       items: [
-        { label: t.sentimentTitle, value: result.analysis.sentiment.title },
-        { label: t.sentimentText, value: result.analysis.sentiment.text },
-        { label: t.sentimentTextArousal, value: result.analysis.sentiment.textArousal },
-        { label: t.sentimentAudio, value: result.analysis.sentiment.audio },
-        { label: t.sentimentAudioArousal, value: result.analysis.sentiment.audioArousal },
+        { label: t.sentimentTitle, value: result?.analysis.sentiment.title ?? t.pendingScore },
+        { label: t.sentimentText, value: result?.analysis.sentiment.text ?? t.pendingScore },
+        { label: t.sentimentTextArousal, value: result?.analysis.sentiment.textArousal ?? t.pendingScore },
+        { label: t.sentimentAudio, value: result?.analysis.sentiment.audio ?? t.pendingScore },
+        { label: t.sentimentAudioArousal, value: result?.analysis.sentiment.audioArousal ?? t.pendingScore },
       ],
     },
     consistency: {
       title: t.metricConsistency,
       items: [
-        { label: t.consistencyTitleTags, value: result.analysis.consistency.titleTags },
-        { label: t.consistencyTitleCover, value: result.analysis.consistency.titleCover },
-        { label: t.consistencyTitleVideo, value: result.analysis.consistency.titleVideo },
-        { label: t.consistencyTextAudio, value: result.analysis.consistency.textAudio },
-        { label: t.consistencyTextVideo, value: result.analysis.consistency.textVideo },
-        { label: t.consistencyVideoAudio, value: result.analysis.consistency.videoAudio },
+        { label: t.consistencyTitleTags, value: result?.analysis.consistency.titleTags ?? t.pendingScore },
+        { label: t.consistencyTitleCover, value: result?.analysis.consistency.titleCover ?? t.pendingScore },
+        { label: t.consistencyTitleVideo, value: result?.analysis.consistency.titleVideo ?? t.pendingScore },
+        { label: t.consistencyTextAudio, value: result?.analysis.consistency.textAudio ?? t.pendingScore },
+        { label: t.consistencyTextVideo, value: result?.analysis.consistency.textVideo ?? t.pendingScore },
+        { label: t.consistencyVideoAudio, value: result?.analysis.consistency.videoAudio ?? t.pendingScore },
       ],
     },
     oriental: {
       title: t.metricOriental,
       items: [
-        { label: t.orientalRichness, value: toFixedText(result.analysis.orientalAesthetics.richness) },
-        { label: t.orientalHarmony, value: toFixedText(result.analysis.orientalAesthetics.harmony) },
-        { label: t.orientalAdaption, value: toFixedText(result.analysis.orientalAesthetics.adaption) },
-        { label: t.orientalModern, value: toFixedText(result.analysis.orientalAesthetics.modern) },
-        { label: t.orientalOriental, value: toFixedText(result.analysis.orientalAesthetics.oriental) },
-        { label: t.orientalWestern, value: toFixedText(result.analysis.orientalAesthetics.western) },
+        { label: t.orientalRichness, value: result ? toFixedText(result.analysis.orientalAesthetics.richness) : t.pendingScore },
+        { label: t.orientalHarmony, value: result ? toFixedText(result.analysis.orientalAesthetics.harmony) : t.pendingScore },
+        { label: t.orientalAdaption, value: result ? toFixedText(result.analysis.orientalAesthetics.adaption) : t.pendingScore },
+        { label: t.orientalModern, value: result ? toFixedText(result.analysis.orientalAesthetics.modern) : t.pendingScore },
+        { label: t.orientalOriental, value: result ? toFixedText(result.analysis.orientalAesthetics.oriental) : t.pendingScore },
+        { label: t.orientalWestern, value: result ? toFixedText(result.analysis.orientalAesthetics.western) : t.pendingScore },
       ],
     },
   };
@@ -609,19 +647,14 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
       <section className="diagnosis-hero">
         <div className="diagnosis-hero-copy">
-          <div className="diagnosis-kicker">{t.pageLabel}</div>
+          <div className="diagnosis-kicker">{t.predictionPrimaryLabel}</div>
           <h1>{submissionInput?.title || t.fallbackTitle}</h1>
-          <p>{t.pageIntro}</p>
+          <p>{submissionInput?.textContent || t.predictionPrimaryDesc}</p>
           <div className="diagnosis-status-row">
-            <span className="diagnosis-status-chip">{t.statusReady}</span>
-            <span className="diagnosis-status-chip subtle">{t.statusModel}</span>
+            <span className="diagnosis-status-chip">{status === "COMPLETED" ? t.statusReady : t.processingLabel}</span>
+            <span className="diagnosis-status-chip subtle">{status === "COMPLETED" ? t.statusModel : t.processingDesc}</span>
+            <span className="diagnosis-status-chip subtle">{submissionInput?.videoName || t.fallbackTitle}</span>
           </div>
-        </div>
-
-        <div className="diagnosis-hero-panel">
-          <div className="diagnosis-panel-label">{t.currentUpload}</div>
-          <div className="diagnosis-panel-title">{submissionInput?.videoName || submissionInput?.title || t.fallbackTitle}</div>
-          <div className="diagnosis-panel-copy">{submissionInput?.textContent || t.noText}</div>
           {(submissionInput?.tags?.length ?? 0) > 0 && (
             <div className="diagnosis-tag-row">
               {submissionInput?.tags?.map((tag) => (
@@ -634,9 +667,73 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
         </div>
       </section>
 
+      <section className="diagnosis-report-grid merged-primary-grid">
+        <article className="diagnosis-summary-card primary-score-card">
+          <div className="diagnosis-section-label">{t.scoreSnapshotLabel}</div>
+          <h2>{status === "COMPLETED" ? t.pageIntro : t.processingDesc}</h2>
+          <div className="prediction-primary-panels">
+            <div className="prediction-primary-panel">
+              <div className="diagnosis-sub-label">{t.scoreLocal}</div>
+              <div className="prediction-gauge-shell">
+                <div className="gauge-wrap" style={{ margin: 0 }}>
+                  <div className="gauge">
+                    <div className="gauge-arc"></div>
+                    <div
+                      className="gauge-needle"
+                      style={{ "--gauge-angle": `${getRotation(localScore)}deg` } as CSSProperties}
+                    ></div>
+                    <div className="gauge-center">
+                      <div className="gauge-value">{status === "COMPLETED" ? localScore : "--"}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="prediction-primary-panel">
+              <div className="diagnosis-sub-label">{t.scoreGlobal}</div>
+              <div className="prediction-gauge-shell">
+                <div className="gauge-wrap" style={{ margin: 0 }}>
+                  <div className="gauge">
+                    <div className="gauge-arc"></div>
+                    <div
+                      className="gauge-needle"
+                      style={{ "--gauge-angle": `${getRotation(globalScore)}deg` } as CSSProperties}
+                    ></div>
+                    <div className="gauge-center">
+                      <div className="gauge-value">{status === "COMPLETED" ? globalScore : "--"}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <aside className="diagnosis-highlight-panel prediction-data-panel">
+          <div className="prediction-data-item">
+            <span>{t.scoreLocal}</span>
+            <strong>{status === "COMPLETED" ? percentText(localScore) : t.pendingScore}</strong>
+          </div>
+          <div className="prediction-data-item">
+            <span>{t.scoreGlobal}</span>
+            <strong>{status === "COMPLETED" ? percentText(globalScore) : t.pendingScore}</strong>
+          </div>
+          <div className="prediction-data-item">
+            <span>{t.metricConsistency}</span>
+            <strong>{status === "COMPLETED" && diagnosis ? diagnosis.highlightStats[2].value : t.pendingScore}</strong>
+          </div>
+          <div className="prediction-data-item">
+            <span>{t.qualityCover}</span>
+            <strong>{status === "COMPLETED" && diagnosis ? diagnosis.highlightStats[3].value : t.pendingScore}</strong>
+          </div>
+        </aside>
+      </section>
+
+      {status === "COMPLETED" && diagnosis ? (
+      <>
       <section className="diagnosis-report-grid">
         <article className="diagnosis-summary-card">
-          <div className="diagnosis-section-label">{t.summaryLabel}</div>
+          <div className="diagnosis-section-label">{t.analysisSecondaryLabel}</div>
           <h2>{diagnosis.conclusion}</h2>
           <div className="diagnosis-summary-split">
             <div>
@@ -665,8 +762,8 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
           <img src={submissionInput.coverPath} alt={submissionInput.title || "cover"} />
           <div className="diagnosis-cover-copy">
             <div className="diagnosis-section-label">{t.reportSource}</div>
-            <h3>{t.pageTitle}</h3>
-            <p>{diagnosis.conclusion}</p>
+            <h3>{submissionInput?.title || submissionInput?.videoName || t.fallbackTitle}</h3>
+            <p>{submissionInput?.textContent || t.noText}</p>
           </div>
         </section>
       )}
@@ -745,6 +842,21 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
         </div>
         <MetricGrid items={tabItems[activeTab].items} />
       </section>
+      </>
+      ) : !loading && !error ? (
+        <section className="diagnosis-card merged-pending-card">
+          <div className="diagnosis-section-label">{t.analysisSecondaryLabel}</div>
+          <h3>{t.processingLabel}</h3>
+          <p>{t.processingDesc}</p>
+        </section>
+      ) : null}
+
+      {error ? (
+        <section className="diagnosis-card merged-pending-card">
+          <div className="diagnosis-section-label">{t.failedLabel}</div>
+          <h3>{error}</h3>
+        </section>
+      ) : null}
     </div>
   );
 }
