@@ -3,6 +3,7 @@
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
+import ParticleBackground from "../components/ParticleBackground";
 import { useLanguage } from "../context/LanguageContext";
 
 const copy = {
@@ -255,7 +256,8 @@ export default function UploadPage() {
     };
 
     return (
-        <div className="page workspace-page workspace-inverse workspace-soft">
+        <div className="page doc-home overview-page workspace-page workspace-inverse workspace-soft">
+            <ParticleBackground />
             <Navbar />
 
             {isProcessing && (

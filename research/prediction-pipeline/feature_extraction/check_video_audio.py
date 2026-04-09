@@ -2,10 +2,14 @@
 
 import os
 import pickle
+from pathlib import Path
 
-video_list = os.listdir('F:/mj/polyuproject/mmvideo/dataset_xiaohongshu/xiaohongshu/video_combine/video/')
+BASE_DIR = Path(__file__).resolve().parent
+VIDEO_DIR = BASE_DIR / "icon_data" / "raw-videos"
+FRAME_DIR = BASE_DIR / "icon_data" / "keyframes"
 
-frame_list = os.listdir('F:/mj/polyuproject/mmvideo/dataset_xiaohongshu/xiaohongshu/video_frames_/')
+video_list = [p.name for p in VIDEO_DIR.glob("*.mp4")]
+frame_list = {p.name for p in FRAME_DIR.iterdir() if p.is_dir()}
 
 for video in video_list:
     if video[:-4] not in frame_list:

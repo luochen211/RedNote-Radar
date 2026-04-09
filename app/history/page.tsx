@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
+import ParticleBackground from "../components/ParticleBackground";
 import Link from "next/link";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -72,7 +73,8 @@ export default function HistoryPage() {
     }, []);
 
     return (
-        <div className="page workspace-page workspace-inverse workspace-soft">
+        <div className="page doc-home overview-page workspace-page workspace-inverse workspace-soft">
+            <ParticleBackground />
             <Navbar />
             <section className="glass fade-up workspace-panel workspace-section" style={{ padding: 40, marginTop: 40, minHeight: '80vh' }}>
                 <div className="workspace-header">

@@ -1,6 +1,7 @@
-70import os
+import os
 import random
 import time
+from pathlib import Path
 
 import torch
 import torchvision.transforms as transforms
@@ -13,6 +14,10 @@ from tqdm import tqdm
 
 import warnings
 warnings.filterwarnings("ignore")
+
+BASE_DIR = Path(__file__).resolve().parent
+input_folder = BASE_DIR / "icon_data" / "keyframes"
+output_folder = BASE_DIR / "icon_data" / "video-features"
 
 
 def extract_and_save_features(input_folder, output_folder, interval=0):
@@ -69,7 +74,7 @@ def extract_and_save_features(input_folder, output_folder, interval=0):
 
 
 # # error file
-# ERROR_FILE = r'F:\mj\polyuproject\mmvideo\szz_featureextraction\1.差分提取视频关键帧\空视频帧文件夹.txt'
+# ERROR_FILE = BASE_DIR / "video_to_key-image" / "empty-video-frame-directories.txt"
 
 # 创建输出文件夹（如果不存在）
 if not os.path.exists(output_folder):

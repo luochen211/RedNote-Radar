@@ -1,13 +1,15 @@
 import json
+from pathlib import Path
 
 error_video = ['6672dd51000000000600589d','66403733000000001e033514']
+base_dir = Path(__file__).resolve().parent
 data1 = json.load(open('test_data_feature.json', 'r', encoding='utf-8'))
 data2 = json.load(open('val_data_feature.json', 'r', encoding='utf-8'))
 data3 = json.load(open('train_data_feature.json', 'r', encoding='utf-8'))
 all_data = data1 + data2 + data3
 
-face = json.load(open('xhs.json', 'r'))
-aestietic = json.load(open(r'F:\mj\polyuproject\mmvideo\szz_featureextraction\deep-photo-aesthetics-master\xiaohongshu_shoutu_aesthetics.json', 'r'))
+face = json.load(open(base_dir / 'xhs.json', 'r'))
+aestietic = json.load(open(base_dir.parent / 'feature_extraction' / 'deep-photo-aesthetics-master' / 'xiaohongshu_shoutu_aesthetics.json', 'r'))
 
 cover_face_dict = {}
 for i in face:
@@ -27,5 +29,5 @@ for i in all_data:
     i_facenum = cover_face_dict[cover]
     i['face_num'] = i_facenum
 #
-with open('xiaohongshu_.json', 'w', encoding='utf-8') as f:
+with open(base_dir / 'xiaohongshu_.json', 'w', encoding='utf-8') as f:
     json.dump(all_data, f)

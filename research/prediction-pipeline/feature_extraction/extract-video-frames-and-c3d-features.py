@@ -21,6 +21,7 @@ from PIL import Image
 # 不要打印ffmpeg的输出
 import subprocess
 import sys
+from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -144,11 +145,12 @@ def feature_extractor():
 if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser()
+	base_dir = Path(__file__).resolve().parent
 
 	print ('******--------- Extract C3D features ------*******')
-	parser.add_argument('-o', '--OUTPUT_DIR', dest='OUTPUT_DIR', type=str, default= r'F:\mj\polyuproject\mmvideo\dataset_xiaohongshu\小红书\video_frames_error\\', help='Output file name')
+	parser.add_argument('-o', '--OUTPUT_DIR', dest='OUTPUT_DIR', type=str, default=str(base_dir / 'icon_data' / 'keyframes'), help='Output file name')
 	parser.add_argument('-l', '--EXTRACTED_LAYER', dest='EXTRACTED_LAYER', type=int, choices=[5, 6, 7], default=6, help='Feature extractor layer')
-	parser.add_argument('-i', '--VIDEO_DIR', dest='VIDEO_DIR', type = str, default= r'F:\mj\polyuproject\mmvideo\dataset_xiaohongshu\xiaohongshu\video_combine\video\\',help='Input Video directory')
+	parser.add_argument('-i', '--VIDEO_DIR', dest='VIDEO_DIR', type = str, default=str(base_dir / 'icon_data' / 'raw-videos'),help='Input Video directory')
 	parser.add_argument('-gpu', '--gpu', dest='GPU', action = 'store_true', default=False, help='Run GPU?')
 	parser.add_argument('--OUTPUT_NAME', default='c3d_features.hdf5', help='The output name of the hdf5 features')
 	parser.add_argument('-b', '--BATCH_SIZE', default=20, help='the batch size')
@@ -166,7 +168,7 @@ if __name__ == "__main__":
 	OUTPUT_NAME = params['OUTPUT_NAME']
 	BATCH_SIZE = params['BATCH_SIZE']
 	USEC3D = False
-	ERROR_FILE = r'F:\mj\polyuproject\mmvideo\szz_featureextraction\1.差分提取视频关键帧\空视频帧文件夹.txt'
+	ERROR_FILE = str(base_dir / 'video_to_key-image' / 'empty-video-frame-directories.txt')
 
 	crop_w = 112
 	resize_w = 128
@@ -179,4 +181,3 @@ if __name__ == "__main__":
 	feature_extractor()
 	# 打印运行的时间
 	print('run time', int((time.time() - start_time) / 60), 'min')
-

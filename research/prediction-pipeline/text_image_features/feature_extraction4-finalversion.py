@@ -1,6 +1,7 @@
 import torch
 import clip
 import time
+from pathlib import Path
 # import asyncio
 import textstat
 from PIL import Image
@@ -17,12 +18,14 @@ from keras.models import Model
 from keras.layers import Dense, Dropout
 from keras.applications.inception_resnet_v2 import InceptionResNetV2, preprocess_input
 
-
+BASE_DIR = Path(__file__).resolve().parent
+BERT_MODEL_DIR = BASE_DIR.parent / "prediction_model" / "bert"
+COVER_IMAGE_DIR = BASE_DIR.parent / "feature_extraction" / "icon_data" / "raw-images"
 
 # 预先加载BERT模型和分词器
-tokenizer = BertTokenizer.from_pretrained('D:/weight/bert/')
-bert_model = BertModel.from_pretrained('D:/weight/bert/')
-predict_model = BertForMaskedLM.from_pretrained('D:/weight/bert/')
+tokenizer = BertTokenizer.from_pretrained(str(BERT_MODEL_DIR))
+bert_model = BertModel.from_pretrained(str(BERT_MODEL_DIR))
+predict_model = BertForMaskedLM.from_pretrained(str(BERT_MODEL_DIR))
 
 # 加载VADER情感分析器
 print("情感分析器")
@@ -140,7 +143,7 @@ def process_data_file(input_file_path):
         # 2. 用CLIP计算图文相似度
 
         original_image_path = item['cover']
-        image_path = original_image_path.replace('./img/', 'D:/szz_featureextraction/icon_data/img/img/')
+        image_path = str(COVER_IMAGE_DIR / Path(original_image_path).name)
 
         try:
             image = Image.open(image_path).convert('RGB')

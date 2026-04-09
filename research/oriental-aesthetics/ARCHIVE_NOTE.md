@@ -1,6 +1,7 @@
 # Archive Note
 
-This folder is a cleaned export of `2.东方色彩美学与文化倾向(6个指标代码及其demo)`.
+This folder is the canonical cleaned export of the legacy local folder
+`2.东方色彩美学与文化倾向(6个指标代码及其demo)`.
 
 Preserved:
 - the four core scripts

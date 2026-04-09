@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import ParticleBackground from "../components/ParticleBackground";
 import { useLanguage } from "../context/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -187,7 +188,8 @@ export default function AdminPage() {
 
     if (status === 'loading' || loading) {
         return (
-            <div className="page workspace-page workspace-inverse workspace-soft">
+            <div className="page doc-home overview-page workspace-page workspace-inverse workspace-soft">
+                <ParticleBackground />
                 <Navbar />
                 <div className="loader" style={{ padding: "120px 0", textAlign: "center" }}>
                     <div className="spinner" style={{ margin: "0 auto" }}></div>
@@ -198,7 +200,8 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="page workspace-page workspace-inverse workspace-soft">
+        <div className="page doc-home overview-page workspace-page workspace-inverse workspace-soft">
+            <ParticleBackground />
             <Navbar />
             <section className="glass fade-up workspace-panel workspace-section" style={{ padding: 36, marginTop: 36, minHeight: '80vh' }}>
                 <div className="workspace-header" style={{ display: 'flex', justifyContent: 'space-between', gap: 24, alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap' }}>

@@ -1,10 +1,9 @@
 import os
+from pathlib import Path
 
 
-
-VIDEO_PATH = 'F:/mj/polyuproject/mmvideo/dataset_xiaohongshu/xiaohongshu/video_combine/video/'
-
-videolist = os.listdir(VIDEO_PATH) # 19074
+VIDEO_PATH = Path(__file__).resolve().parents[1] / "icon_data" / "raw-videos"
+videolist = sorted(p.name for p in VIDEO_PATH.glob("*.mp4"))
 
 videolist1 = videolist[:3000]
 videolist2 = videolist[3000:6000]

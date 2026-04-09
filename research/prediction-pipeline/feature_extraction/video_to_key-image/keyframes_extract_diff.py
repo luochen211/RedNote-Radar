@@ -38,6 +38,7 @@ import operator
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+from pathlib import Path
 from scipy.signal import argrelextrema
 import os
 
@@ -144,10 +145,10 @@ if __name__ == "__main__":
     # smoothing window size
     LEN_WINDOW = int(50)
 
-    # Video path of the source file
-
-
-    ERROR_FILE = 'icon_video_frame_error.txt'
+    base_dir = Path(__file__).resolve().parents[2]
+    VIDEO_PATH = str(base_dir / "feature_extraction" / "icon_data" / "raw-videos") + os.sep
+    OUTPUT_DIR = str(base_dir / "feature_extraction" / "icon_data" / "keyframes") + os.sep
+    ERROR_FILE = str(Path(__file__).resolve().parent / "icon-video-frame-error.txt")
 
 
     def extract_video_frames(videoNAME):
@@ -235,8 +236,7 @@ if __name__ == "__main__":
 
     import json
 
-    # videolist1 = json.load(open("D:/zyj_exceltojason/icon_data.json"))
-    with open("D:/zyj_exceltojason/icon_data.json", "r", encoding="utf-8") as f:
+    with open(base_dir / "text_image_features" / "icon_data.json", "r", encoding="utf-8") as f:
         videolist1 = json.load(f)
     # videolist2 = json.load(open('videolist2.json'))
     # videolist3 = json.load(open('videolist3.json'))
@@ -256,4 +256,3 @@ if __name__ == "__main__":
             f = open(ERROR_FILE, 'a')
             f.write(video + '\n')
             f.close()
-

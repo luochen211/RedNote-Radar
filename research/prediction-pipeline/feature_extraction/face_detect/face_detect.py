@@ -5,6 +5,7 @@ import urllib.request
 import urllib.error
 import time
 import re
+from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
@@ -72,13 +73,14 @@ def face_num_extra(image_path):
         return -1.0
 
 
-IMG_PATH = r'F:\mj\polyuproject\mmvideo\dataset_xiaohongshu\xiaohongshu\img_change_format'
+BASE_DIR = Path(__file__).resolve().parents[2]
+IMG_PATH = BASE_DIR / 'feature_extraction' / 'icon_data' / 'raw-images'
 
-all_data = json.load(open(r'F:\mj\polyuproject\mmvideo\zyj_exceltojason\xiaohongshu.json', 'r', encoding='utf-8'))
+all_data = json.load(open(BASE_DIR / 'text_image_features' / 'xiaohongshu.json', 'r', encoding='utf-8'))
 
 for i in tqdm(all_data):
     cover = i['cover'].split('/')[-1]
-    cover_path = os.path.join(IMG_PATH, cover)
+    cover_path = IMG_PATH / cover
     try:
         face_num = face_num_extra(cover_path)
     except:
@@ -86,6 +88,6 @@ for i in tqdm(all_data):
 
     i['face_num'] = face_num
 
-with open(r'F:\mj\polyuproject\mmvideo\zyj_exceltojason\xhs.json', 'w', encoding='utf-8') as f:
+with open(BASE_DIR / 'text_image_features' / 'xhs.json', 'w', encoding='utf-8') as f:
     json.dump(all_data, f)
 

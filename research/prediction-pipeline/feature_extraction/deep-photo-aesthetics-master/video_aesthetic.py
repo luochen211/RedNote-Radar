@@ -17,6 +17,7 @@ import cv2
 import random
 import torch
 import sys
+from pathlib import Path
 from torchvision import transforms
 import matplotlib.image as mpimg
 
@@ -151,10 +152,10 @@ def calculate_average_score(video_id, base_img_dir, max_images=10):
 
 
 if __name__ == "__main__":
-    # 配置路径（根据你的实际路径调整）
-    base_img_dir = r"D:\szz_featureextraction\icon_data\keyframes"  # 关键帧根目录
-    json_path = 'D:/zyj_exceltojason/icon_data_feature.json'  # 原始JSON文件路径
-    output_json = 'icon_data_with_video_aesthetic.json'  # 输出文件路径
+    script_dir = Path(__file__).resolve().parent
+    base_img_dir = script_dir.parent / "icon_data" / "keyframes"
+    json_path = script_dir.parent.parent / "text_image_features" / "icon_data_feature.json"
+    output_json = script_dir / "icon_data_with_video_aesthetic.json"
 
     # 1. 读取原始JSON文件
     print("Reading original JSON file...")

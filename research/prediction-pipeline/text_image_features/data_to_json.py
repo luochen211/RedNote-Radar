@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import os
+from pathlib import Path
 
 # Read the data from the CSV file
 def read_data_from_csv(csv_file_path):
@@ -22,8 +23,9 @@ def preprocess_data(data):
 
 
 if __name__ == '__main__':
-    json_file_path = r"D:\zyj_exceltojason\icon_data.json"
-    csv_file_path = r"D:\zyj_exceltojason\icon_data.csv"
+    base_dir = Path(__file__).resolve().parent
+    json_file_path = base_dir / "icon_data.json"
+    csv_file_path = base_dir / "icon_data.csv"
     data = read_data_from_csv(csv_file_path)
     # data = preprocess_data(data)
     #data.to_csv('data1.csv', index=False, encoding='utf-8-sig')

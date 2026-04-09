@@ -1,6 +1,7 @@
 # Prediction Pipeline Archive
 
-Cleaned export of the materials from `1.预测页代码与部分分析页代码`.
+Canonical archive migrated from the legacy local folder
+`1.预测页代码与部分分析页代码`.
 
 Contents:
 - `feature_extraction/`: video frame, audio, face, and aesthetic feature extraction scripts
@@ -8,11 +9,17 @@ Contents:
 - `text_image_features/`: text, title-tag, cover-quality, and cover-aesthetics feature scripts
 - `manifests/`: notes about excluded local-only assets
 
-Local-only assets intentionally excluded from Git:
-- `weight/bert/pytorch_model.bin`
-- `zyj_exceltojason/*.whl`
-- extracted `.pkl` feature tensors
-- local IDE folders and `venv/`
-- large raw media folders under `icon_data/`
+Canonical local-only supplement paths:
+- `feature_extraction/icon_data/raw-images/`
+- `feature_extraction/icon_data/raw-videos/`
+- `prediction_model/bert/pytorch_model.bin`
+- `prediction_model/torchvggish/test.wav`
+- `prediction_model/local-assets/`
+- `text_image_features/local-assets/`
 
-The original pipeline notes were converted from the local `readme.txt` and preserved in `manifests/original-notes.md`.
+These remain local and gitignored because they are large or
+machine-specific.
+
+The original pipeline notes were converted from the local `readme.txt`
+and preserved in `manifests/original-notes.md`. The raw source note is
+also preserved locally as `manifests/source-readme.txt`.

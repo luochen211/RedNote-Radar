@@ -509,16 +509,96 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
   };
 }
 
+function buildMetricDescriptions(t: typeof copy.en | typeof copy.zh) {
+  return {
+    [t.qualityAesthetic]: t === copy.zh
+      ? "衡量视频整体画面美感、构图、光线和质感的综合分数。"
+      : "Measures overall visual appeal, composition, lighting, and finish of the video.",
+    [t.qualityReadability]: t === copy.zh
+      ? "衡量标题与正文是否容易快速读懂，是否像用户语言而不是通稿。"
+      : "Measures how easy the title and caption are to understand at a glance.",
+    [t.qualityCover]: t === copy.zh
+      ? "衡量封面清晰度、主体突出度和点击第一眼抓力。"
+      : "Measures cover clarity, subject prominence, and first-click strength.",
+    [t.qualityCoverAesthetic]: t === copy.zh
+      ? "衡量封面本身的审美完成度和高端感。"
+      : "Measures the aesthetic finish and premium feel of the cover image.",
+    [t.qualityVoice]: t === copy.zh
+      ? "判断视频里是否有人声、旁白或明显语音信息。"
+      : "Indicates whether spoken voice or narration is present in the video.",
+    [t.qualityFace]: t === copy.zh
+      ? "判断视频里是否有人脸出现，影响代入感和真人感。"
+      : "Indicates whether faces appear in the video, affecting human presence.",
+    [t.sentimentTitle]: t === copy.zh
+      ? "衡量标题本身传递出的情绪倾向强弱。"
+      : "Measures the emotional direction expressed by the title alone.",
+    [t.sentimentText]: t === copy.zh
+      ? "衡量正文文案整体传递出的情绪倾向。"
+      : "Measures the overall emotional direction expressed by the caption.",
+    [t.sentimentTextArousal]: t === copy.zh
+      ? "衡量正文文案的情绪激活程度，决定是否容易让人产生反应。"
+      : "Measures how activating the caption is and whether it prompts reaction.",
+    [t.sentimentAudio]: t === copy.zh
+      ? "衡量音频或背景声所传递的情绪方向。"
+      : "Measures the emotional direction conveyed by the audio track.",
+    [t.sentimentAudioArousal]: t === copy.zh
+      ? "衡量音频的情绪张力和唤起能力。"
+      : "Measures the emotional tension and arousal strength of the audio.",
+    [t.consistencyTitleTags]: t === copy.zh
+      ? "衡量标题与标签之间是否表达同一个核心主题。"
+      : "Measures whether title and tags point to the same core topic.",
+    [t.consistencyTitleCover]: t === copy.zh
+      ? "衡量标题承诺与封面视觉是否一致。"
+      : "Measures whether the title promise matches the cover visual.",
+    [t.consistencyTitleVideo]: t === copy.zh
+      ? "衡量标题承诺与实际视频内容是否对齐，是最关键的一致性指标之一。"
+      : "Measures whether the title promise aligns with the actual video content.",
+    [t.consistencyTextAudio]: t === copy.zh
+      ? "衡量正文情绪与音频情绪是否同向。"
+      : "Measures whether caption emotion and audio emotion move in the same direction.",
+    [t.consistencyTextVideo]: t === copy.zh
+      ? "衡量正文内容与实际视频表达是否一致。"
+      : "Measures whether the caption meaning aligns with the actual footage.",
+    [t.consistencyVideoAudio]: t === copy.zh
+      ? "衡量画面情绪与音频情绪是否协同。"
+      : "Measures whether visual emotion and audio emotion work together.",
+    [t.orientalRichness]: t === copy.zh
+      ? "衡量画面中的文化元素、层次与细节丰富度。"
+      : "Measures richness of visual detail, cultural cues, and layered information.",
+    [t.orientalHarmony]: t === copy.zh
+      ? "衡量画面整体秩序感、协调度和审美统一性。"
+      : "Measures visual order, balance, and overall aesthetic coherence.",
+    [t.orientalAdaption]: t === copy.zh
+      ? "衡量内容与酒店场景、目标用户之间的适配程度。"
+      : "Measures how well the content fits the hotel context and target audience.",
+    [t.orientalModern]: t === copy.zh
+      ? "衡量画面更偏现代设计与都市感的程度。"
+      : "Measures how strongly the content leans toward modern design cues.",
+    [t.orientalOriental]: t === copy.zh
+      ? "衡量画面中的东方文化、美学和在地气质强度。"
+      : "Measures the strength of Eastern cultural and aesthetic cues.",
+    [t.orientalWestern]: t === copy.zh
+      ? "衡量画面中的西式审美、国际化和现代酒店表达倾向。"
+      : "Measures the strength of Westernized or international visual cues.",
+  } as Record<string, string>;
+}
+
 function MetricGrid({
   items,
 }: {
-  items: { label: string; value: string }[];
+  items: { label: string; value: string; description?: string }[];
 }) {
   return (
     <div className="diagnosis-metric-grid">
       {items.map((item) => (
         <article key={item.label} className="diagnosis-metric-card">
-          <div className="diagnosis-metric-label">{item.label}</div>
+          <div className="diagnosis-metric-label tooltip">
+            <span className="label">
+              {item.label}
+              {item.description ? <span className="diagnosis-metric-help">?</span> : null}
+            </span>
+            {item.description ? <div className="tooltip-bubble diagnosis-tooltip-bubble">{item.description}</div> : null}
+          </div>
           <div className="diagnosis-metric-value">{item.value}</div>
         </article>
       ))}
@@ -595,48 +675,49 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
   }, [params.id, t.failedLabel, t.fetchError]);
 
   const diagnosis = result?.analysis ? buildDiagnosis(result.analysis, result, lang) : null;
-  const tabItems: Record<MetricTabKey, { title: string; items: { label: string; value: string }[] }> = {
+  const metricDescriptions = buildMetricDescriptions(t);
+  const tabItems: Record<MetricTabKey, { title: string; items: { label: string; value: string; description?: string }[] }> = {
     quality: {
       title: t.metricQuality,
       items: [
-        { label: t.qualityAesthetic, value: result?.analysis.quality.aesthetic ?? t.pendingScore },
-        { label: t.qualityReadability, value: result?.analysis.quality.readability ?? t.pendingScore },
-        { label: t.qualityCover, value: result?.analysis.quality.coverQuality ?? t.pendingScore },
-        { label: t.qualityCoverAesthetic, value: result?.analysis.quality.coverAesthetic ?? t.pendingScore },
-        { label: t.qualityVoice, value: result?.analysis.quality.voice ?? t.pendingScore },
-        { label: t.qualityFace, value: result?.analysis.quality.face ?? t.pendingScore },
+        { label: t.qualityAesthetic, value: result?.analysis.quality.aesthetic ?? t.pendingScore, description: metricDescriptions[t.qualityAesthetic] },
+        { label: t.qualityReadability, value: result?.analysis.quality.readability ?? t.pendingScore, description: metricDescriptions[t.qualityReadability] },
+        { label: t.qualityCover, value: result?.analysis.quality.coverQuality ?? t.pendingScore, description: metricDescriptions[t.qualityCover] },
+        { label: t.qualityCoverAesthetic, value: result?.analysis.quality.coverAesthetic ?? t.pendingScore, description: metricDescriptions[t.qualityCoverAesthetic] },
+        { label: t.qualityVoice, value: result?.analysis.quality.voice ?? t.pendingScore, description: metricDescriptions[t.qualityVoice] },
+        { label: t.qualityFace, value: result?.analysis.quality.face ?? t.pendingScore, description: metricDescriptions[t.qualityFace] },
       ],
     },
     sentiment: {
       title: t.metricSentiment,
       items: [
-        { label: t.sentimentTitle, value: result?.analysis.sentiment.title ?? t.pendingScore },
-        { label: t.sentimentText, value: result?.analysis.sentiment.text ?? t.pendingScore },
-        { label: t.sentimentTextArousal, value: result?.analysis.sentiment.textArousal ?? t.pendingScore },
-        { label: t.sentimentAudio, value: result?.analysis.sentiment.audio ?? t.pendingScore },
-        { label: t.sentimentAudioArousal, value: result?.analysis.sentiment.audioArousal ?? t.pendingScore },
+        { label: t.sentimentTitle, value: result?.analysis.sentiment.title ?? t.pendingScore, description: metricDescriptions[t.sentimentTitle] },
+        { label: t.sentimentText, value: result?.analysis.sentiment.text ?? t.pendingScore, description: metricDescriptions[t.sentimentText] },
+        { label: t.sentimentTextArousal, value: result?.analysis.sentiment.textArousal ?? t.pendingScore, description: metricDescriptions[t.sentimentTextArousal] },
+        { label: t.sentimentAudio, value: result?.analysis.sentiment.audio ?? t.pendingScore, description: metricDescriptions[t.sentimentAudio] },
+        { label: t.sentimentAudioArousal, value: result?.analysis.sentiment.audioArousal ?? t.pendingScore, description: metricDescriptions[t.sentimentAudioArousal] },
       ],
     },
     consistency: {
       title: t.metricConsistency,
       items: [
-        { label: t.consistencyTitleTags, value: result?.analysis.consistency.titleTags ?? t.pendingScore },
-        { label: t.consistencyTitleCover, value: result?.analysis.consistency.titleCover ?? t.pendingScore },
-        { label: t.consistencyTitleVideo, value: result?.analysis.consistency.titleVideo ?? t.pendingScore },
-        { label: t.consistencyTextAudio, value: result?.analysis.consistency.textAudio ?? t.pendingScore },
-        { label: t.consistencyTextVideo, value: result?.analysis.consistency.textVideo ?? t.pendingScore },
-        { label: t.consistencyVideoAudio, value: result?.analysis.consistency.videoAudio ?? t.pendingScore },
+        { label: t.consistencyTitleTags, value: result?.analysis.consistency.titleTags ?? t.pendingScore, description: metricDescriptions[t.consistencyTitleTags] },
+        { label: t.consistencyTitleCover, value: result?.analysis.consistency.titleCover ?? t.pendingScore, description: metricDescriptions[t.consistencyTitleCover] },
+        { label: t.consistencyTitleVideo, value: result?.analysis.consistency.titleVideo ?? t.pendingScore, description: metricDescriptions[t.consistencyTitleVideo] },
+        { label: t.consistencyTextAudio, value: result?.analysis.consistency.textAudio ?? t.pendingScore, description: metricDescriptions[t.consistencyTextAudio] },
+        { label: t.consistencyTextVideo, value: result?.analysis.consistency.textVideo ?? t.pendingScore, description: metricDescriptions[t.consistencyTextVideo] },
+        { label: t.consistencyVideoAudio, value: result?.analysis.consistency.videoAudio ?? t.pendingScore, description: metricDescriptions[t.consistencyVideoAudio] },
       ],
     },
     oriental: {
       title: t.metricOriental,
       items: [
-        { label: t.orientalRichness, value: result ? toFixedText(result.analysis.orientalAesthetics.richness) : t.pendingScore },
-        { label: t.orientalHarmony, value: result ? toFixedText(result.analysis.orientalAesthetics.harmony) : t.pendingScore },
-        { label: t.orientalAdaption, value: result ? toFixedText(result.analysis.orientalAesthetics.adaption) : t.pendingScore },
-        { label: t.orientalModern, value: result ? toFixedText(result.analysis.orientalAesthetics.modern) : t.pendingScore },
-        { label: t.orientalOriental, value: result ? toFixedText(result.analysis.orientalAesthetics.oriental) : t.pendingScore },
-        { label: t.orientalWestern, value: result ? toFixedText(result.analysis.orientalAesthetics.western) : t.pendingScore },
+        { label: t.orientalRichness, value: result ? toFixedText(result.analysis.orientalAesthetics.richness) : t.pendingScore, description: metricDescriptions[t.orientalRichness] },
+        { label: t.orientalHarmony, value: result ? toFixedText(result.analysis.orientalAesthetics.harmony) : t.pendingScore, description: metricDescriptions[t.orientalHarmony] },
+        { label: t.orientalAdaption, value: result ? toFixedText(result.analysis.orientalAesthetics.adaption) : t.pendingScore, description: metricDescriptions[t.orientalAdaption] },
+        { label: t.orientalModern, value: result ? toFixedText(result.analysis.orientalAesthetics.modern) : t.pendingScore, description: metricDescriptions[t.orientalModern] },
+        { label: t.orientalOriental, value: result ? toFixedText(result.analysis.orientalAesthetics.oriental) : t.pendingScore, description: metricDescriptions[t.orientalOriental] },
+        { label: t.orientalWestern, value: result ? toFixedText(result.analysis.orientalAesthetics.western) : t.pendingScore, description: metricDescriptions[t.orientalWestern] },
       ],
     },
   };
@@ -731,7 +812,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
 
       {status === "COMPLETED" && diagnosis ? (
       <>
-      <section className="diagnosis-report-grid">
+      <section className="diagnosis-report-grid diagnosis-report-grid-single">
         <article className="diagnosis-summary-card">
           <div className="diagnosis-section-label">{t.analysisSecondaryLabel}</div>
           <h2>{diagnosis.conclusion}</h2>
@@ -746,15 +827,6 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
             </div>
           </div>
         </article>
-
-        <aside className="diagnosis-highlight-panel">
-          {diagnosis.highlightStats.map((item) => (
-            <div key={item.label} className="diagnosis-highlight-item">
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-            </div>
-          ))}
-        </aside>
       </section>
 
       {submissionInput?.coverPath && (

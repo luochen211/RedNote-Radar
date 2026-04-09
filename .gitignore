@@ -8,9 +8,11 @@
 
 # Next.js
 /.next/
+/.next.cache.*/
 /.next.bad.*/
 /.next.bak-*/
 /out/
+/.exports/
 
 # Production
 /build
@@ -44,7 +46,9 @@ next-env.d.ts
 # Temporary files
 ~$*
 
-# Local reference materials
+# Legacy local reference materials
+# These have been migrated into `research/` and stay ignored here so
+# accidental re-exports do not pollute the repo again.
 /1.预测页代码与部分分析页代码/
 /2.东方色彩美学与文化倾向(6个指标代码及其demo)/
 /3.其他剩余的分析页数值特征代码/
@@ -52,6 +56,23 @@ next-env.d.ts
 /Hotel Video InsightHub - 前端 UI 重构交接文档.docx
 /网页开发需求整合V6.docx
 /网页开发需求整合V7.docx
+
+# Research local supplemental assets
+/research/prediction-pipeline/feature_extraction/icon_data/raw-images/
+/research/prediction-pipeline/feature_extraction/icon_data/raw-videos/
+/research/prediction-pipeline/prediction_model/bert/pytorch_model.bin
+/research/prediction-pipeline/prediction_model/torchvggish/test.wav
+/research/prediction-pipeline/prediction_model/local-assets/
+/research/prediction-pipeline/text_image_features/local-assets/
+/research/analysis-metrics/audio_emotion/dataset/
+/research/analysis-metrics/audio_emotion/inference/data/
+/research/analysis-metrics/audio_emotion/saved_models/
+/research/analysis-metrics/deep_sentibank/*.dll
+/research/analysis-metrics/deep_sentibank/*.exe
+/research/analysis-metrics/deep_sentibank/caffe_sentibank_train_iter_250000
+/research/analysis-metrics/deep_sentibank/test/
+/research/analysis-metrics/local-sample-data/
+/research/analysis-metrics/manifests/source-readme.docx
 
 # Local uploads
 /public/uploads/

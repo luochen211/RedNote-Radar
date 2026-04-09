@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InsightHub - LLM Diagnosis Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    colors: { tech: { dark: '#0B1120', panel: '#1E293B', accent: '#06B6D4', glow: '#3B82F6', card: '#0F172A' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0B1120; color: #cbd5e1; }
+        .glass-panel { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 扫光骨架屏动画 */
+        .skeleton {
+            background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 0.5rem;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body class="bg-tech-dark font-sans antialiased min-h-screen flex flex-col selection:bg-tech-accent selection:text-white">
+
+    <!-- 顶部控制台导航 -->
+    <nav class="sticky top-0 z-50 bg-tech-dark/90 backdrop-blur-md border-b border-slate-800/80 px-6 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded bg-tech-accent/20 border border-tech-accent/30 flex items-center justify-center">
+                    <i data-lucide="bot" class="text-tech-accent w-3 h-3"></i>
+                </div>
+                <span class="font-bold text-white tracking-wide">AI 洞察大模型生成演示 (LLM Demo)</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-mono text-slate-500 bg-slate-800 px-2 py-1 rounded">Model: Qwen-Plus</span>
+        </div>
+    </nav>
+
+    <!-- 主体内容 -->
+    <main class="flex-1 w-full max-w-5xl mx-auto p-6 md:p-10">
+        
+        <!-- 操作区：点击生成报告 -->
+        <div class="mb-10 flex flex-col items-center justify-center bg-tech-panel/30 border border-slate-700/50 p-8 rounded-2xl">
+            <h2 class="text-xl text-white font-semibold mb-2">测试1_酒店全海景套房体验.mp4</h2>
+            <p class="text-sm text-slate-400 mb-6">底层多模态指标已提取完毕，点击下方按钮请求大模型进行深度解读。</p>
+            
+            <button id="btn-generate" onclick="startGeneration()" class="relative group overflow-hidden px-8 py-3 bg-slate-800 text-white rounded-xl border border-slate-600 hover:border-tech-accent transition-all font-medium flex items-center gap-2">
+                <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-tech-accent/0 via-tech-accent/20 to-tech-accent/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                <i data-lucide="sparkles" class="w-5 h-5 text-tech-accent"></i>
+                <span id="btn-text">请求通义千问 API 生成报告</span>
+            </button>
+        </div>
+
+        <!-- 加载状态 (Skeleton Loading) -->
+        <div id="loading-state" class="hidden flex-col items-center justify-center py-20 space-y-6">
+            <div class="relative w-16 h-16 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-t-2 border-tech-accent animate-spin"></div>
+                <i data-lucide="cpu" class="w-6 h-6 text-tech-accent animate-pulse"></i>
+            </div>
+            <div class="text-center">
+                <p class="text-tech-accent font-mono text-sm mb-1">Qwen-Plus is thinking...</p>
+                <p class="text-slate-500 text-xs">正在分析维度数据并生成专业建议，预计需要 3-5 秒</p>
+            </div>
+            <!-- 骨架屏占位 -->
+            <div class="w-full max-w-3xl space-y-4 opacity-50">
+                <div class="skeleton h-24 w-full"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="skeleton h-32 w-full"></div>
+                    <div class="skeleton h-32 w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据渲染区 (Report View) -->
+        <div id="report-view" class="hidden space-y-8">
+            
+            <!-- 1. 高管摘要 Executive Summary -->
+            <div class="fade-in bg-gradient-to-br from-[#1E293B] to-[#0F172A] p-8 rounded-2xl border border-tech-accent/20 relative overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.05)]">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tech-accent to-tech-glow"></div>
+                <div class="absolute top-0 right-0 w-64 h-64 bg-tech-accent/5 rounded-full blur-[80px] pointer-events-none"></div>
+                
+                <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2 relative z-10">
+                    <i data-lucide="file-check-2" class="text-tech-accent w-6 h-6"></i> 执行摘要 (Executive Summary)
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                    <div class="md:col-span-2 space-y-4">
+                        <div>
+                            <div class="text-xs text-slate-500 mb-1 font-mono uppercase">Conclusion</div>
+                            <p id="r-conclusion" class="text-base text-slate-200 leading-relaxed"></p>
+                        </div>
+                        <div class="bg-rose-500/10 border border-rose-500/20 p-3 rounded-lg">
+                            <div class="text-xs text-rose-400 mb-1 font-mono uppercase flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Core Problem</div>
+                            <p id="r-core-problem" class="text-sm text-slate-300"></p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 border border-slate-700 p-5 rounded-xl flex flex-col justify-center items-center text-center">
+                        <i data-lucide="trending-up" class="w-8 h-8 text-emerald-400 mb-2"></i>
+                        <div class="text-xs text-slate-400 mb-1 uppercase tracking-wider">Expected ROI</div>
+                        <p id="r-expected-roi" class="text-sm text-emerald-300 font-medium"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 多维度深度剖析 -->
+            <div class="fade-in grid grid-cols-1 lg:grid-cols-3 gap-6" style="animation-delay: 0.1s;">
+                <!-- 左侧两列：维度分析 -->
+                <div class="lg:col-span-2 bg-tech-card border border-slate-700/50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <i data-lucide="microscope" class="text-purple-400 w-5 h-5"></i> 多维度深度剖析 (Dimension Analysis)
+                    </h3>
+                    <div class="space-y-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                                <i data-lucide="palette" class="text-slate-400 w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p id="r-visual" class="text-sm text-slate-300 leading-relaxed"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                                <i data-lucide="git-merge" class="text-slate-400 w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p id="r-narrative" class="text-sm text-slate-300 leading-relaxed"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                                <i data-lucide="heart-pulse" class="text-slate-400 w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p id="r-emotional" class="text-sm text-slate-300 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧一列：人群与平台策略 -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-tech-card border border-slate-700/50 rounded-xl p-6">
+                        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <i data-lucide="users" class="text-tech-glow w-4 h-4"></i> 目标受众画像
+                        </h3>
+                        <p id="r-target-group" class="text-tech-accent font-medium text-sm mb-2 pb-2 border-b border-slate-800"></p>
+                        <p id="r-target-reasoning" class="text-xs text-slate-400 leading-relaxed"></p>
+                    </div>
+
+                    <div class="bg-tech-card border border-slate-700/50 rounded-xl p-6">
+                        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <i data-lucide="share-2" class="text-amber-400 w-4 h-4"></i> 平台分发策略
+                        </h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs text-slate-500">优选平台：</span>
+                            <span id="r-platform" class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-bold"></span>
+                        </div>
+                        <p id="r-platform-justification" class="text-xs text-slate-400 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 行动建议清单 (Actionable Steps) -->
+            <div class="fade-in bg-tech-card border border-slate-700/50 rounded-xl p-6 md:p-8" style="animation-delay: 0.2s;">
+                <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-2 border-b border-slate-800 pb-4">
+                    <i data-lucide="hammer" class="text-emerald-400 w-5 h-5"></i> 优化处方与执行清单
+                </h3>
+                
+                <div id="action-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- JS动态渲染区 -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // 模拟大模型返回的那份“超豪华版” JSON 数据
+        const mockQwenResponse = {
+            "executive_summary": {
+                "conclusion": "该视频视觉呈现极佳，具备打造‘爆款种草’的潜质，但在语义连贯性上存在重大断层。",
+                "core_problem": "标题与实际画面（一致性仅18%）严重割裂，将导致极高的前3秒跳出率，触发平台限流机制。",
+                "expected_roi": "若修正标题并增加人声旁白，预计可提升核心转化率及公域流量分发层级至少 25%-40%。"
+            },
+            "audience_persona": {
+                "target_group": "追求松弛感与奢华体验的一二线城市高净值女性（25-35岁）。",
+                "reasoning": "视频展现出高杂乱度（0.98）与高和谐度（0.84），属于‘繁复有序’的高级审美，极度契合该群体对生活品质的精细化要求。"
+            },
+            "dimension_analysis": {
+                "visual_aesthetics": "【视觉与美学】封面质量得分高达88.5，具备极强的视觉抓手。整体画面在复杂元素堆叠下仍维持了0.84的高和谐度，有效传递了高端酒店的奢华调性，视觉留存能力强。",
+                "narrative_logic": "【叙事与一致性】存在严重的结构性风险。正文与视频契合度良好（0.85），但标题与画面的潜空间距离过远（一致性0.18），属于典型的无效博眼球，严重破坏算法标签提取。",
+                "emotional_resonance": "【情感与沉浸感】完全缺乏真人原声引导，且文本可读性（0.42）存在一定阅读门槛。导致整体情绪唤醒度偏向冷淡，难以在短视频快速滑动中建立真实的信任链接。"
+            },
+            "platform_strategy": {
+                "primary_platform": "小红书",
+                "justification": "高封面质量与‘繁复有序’的美学特征高度契合小红书用户的‘图文/视频种草’心智。相比抖音的快节奏，该视频的静态美感更易在小红书获得搜索长尾流量。"
+            },
+            "actionable_steps": [
+                {
+                    "priority": "P0",
+                    "tag": "内容重构",
+                    "title": "重构视频标题，回归写实叙事",
+                    "detail": "鉴于标题一致性低至18%，必须立刻抛弃悬念式标题。建议提取画面核心元素，如改为：'沉浸式开箱 | 躺看西湖全景，这家酒店套房绝了'，以稳定前5秒完播率。"
+                },
+                {
+                    "priority": "P1",
+                    "tag": "视听优化",
+                    "title": "补充沉浸式 Vlog 原声",
+                    "detail": "为弥补人声缺失带来的情感断层，建议采用 ASMR 风格收音（如开门声、海浪声）结合博主轻声旁白，大幅拉升音频唤醒度，增强用户的代入感。"
+                },
+                {
+                    "priority": "P2",
+                    "tag": "运营策略",
+                    "title": "口语化精简正文排版",
+                    "detail": "针对 0.42 的偏低可读性，建议将正文的酒店通稿式文案重写。提炼 3 个核心打卡点，多使用短句和 Emoji（如 📍、✨），降低阅读门槛，促进评论区互动。"
+                }
+            ]
+        };
+
+        // 模拟调用大模型 API 的过程
+        function startGeneration() {
+            const btn = document.getElementById('btn-generate');
+            const btnText = document.getElementById('btn-text');
+            const loadingState = document.getElementById('loading-state');
+            const reportView = document.getElementById('report-view');
+            
+            // 改变按钮状态并显示加载骨架屏
+            btnText.innerText = "请求发送中...";
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.disabled = true;
+            
+            // 隐藏原始按钮区域外的操作，显示大 loading
+            btn.parentElement.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            loadingState.classList.add('flex');
+
+            // 模拟大模型思考的 3 秒网络延迟
+            setTimeout(() => {
+                loadingState.classList.add('hidden');
+                loadingState.classList.remove('flex');
+                
+                // 渲染数据
+                renderData(mockQwenResponse);
+                
+                // 显示报告视图
+                reportView.classList.remove('hidden');
+                
+                // 重新渲染新插入的图标
+                lucide.createIcons();
+            }, 3000);
+        }
+
+        // 渲染大模型返回的 JSON 数据到页面上
+        function renderData(data) {
+            // 1. 渲染高管摘要
+            document.getElementById('r-conclusion').innerText = data.executive_summary.conclusion;
+            document.getElementById('r-core-problem').innerText = data.executive_summary.core_problem;
+            document.getElementById('r-expected-roi').innerText = data.executive_summary.expected_roi;
+
+            // 2. 渲染受众与平台
+            document.getElementById('r-target-group').innerText = data.audience_persona.target_group;
+            document.getElementById('r-target-reasoning').innerText = data.audience_persona.reasoning;
+            document.getElementById('r-platform').innerText = data.platform_strategy.primary_platform;
+            document.getElementById('r-platform-justification').innerText = data.platform_strategy.justification;
+
+            // 3. 渲染维度剖析 (用正则给前缀加粗)
+            const formatText = (text) => text.replace(/【(.*?)】/, '<strong class="text-white">【$1】</strong>');
+            document.getElementById('r-visual').innerHTML = formatText(data.dimension_analysis.visual_aesthetics);
+            document.getElementById('r-narrative').innerHTML = formatText(data.dimension_analysis.narrative_logic);
+            document.getElementById('r-emotional').innerHTML = formatText(data.dimension_analysis.emotional_resonance);
+
+            // 4. 渲染行动建议 (Grid 卡片布局)
+            const actionContainer = document.getElementById('action-list');
+            const colorMap = { 'P0': 'rose', 'P1': 'amber', 'P2': 'slate' };
+            const iconMap = { '内容重构': 'file-edit', '视听优化': 'mic', '运营策略': 'share-2' };
+
+            const actionsHtml = data.actionable_steps.map((step, index) => {
+                const c = colorMap[step.priority] || 'slate';
+                const icon = iconMap[step.tag] || 'check-circle';
+                const delay = 0.3 + (index * 0.1); // 卡片错落出现
+
+                return `
+                <div class="fade-in bg-slate-800/40 border border-slate-700 rounded-xl p-5 relative overflow-hidden group hover:border-${c}-500/50 transition-colors" style="animation-delay: ${delay}s;">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-${c}-500/50 group-hover:bg-${c}-500 transition-colors"></div>
+                    
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="px-2 py-1 rounded bg-${c}-500/10 text-${c}-400 text-xs font-mono border border-${c}-500/20">${step.priority}</div>
+                        <div class="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full flex items-center gap-1">
+                            <i data-lucide="${icon}" class="w-3 h-3"></i> ${step.tag}
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-base font-bold text-white mb-2 leading-tight">${step.title}</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">${step.detail}</p>
+                </div>
+                `;
+            }).join('');
+
+            actionContainer.innerHTML = actionsHtml;
+        }
+    </script>
+</body>
+</html>

@@ -20,6 +20,18 @@ from models.Trainer_3set import Trainer3
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+CHECKPOINT_PATH = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "local-assets",
+        "checkpoints",
+        "XIAOHONGSHU",
+        "BOTTLE",
+        "BOTTLE_best_all29_bs1.pth",
+    )
+)
+
 def pad_sequence(seq_len, lst, emb):
     result = []
     for video in lst:
@@ -511,9 +523,9 @@ class Run():
         print('-' * 50)
         self.model = self.get_model()
         #全局模型
-        self.model.load_state_dict(torch.load("D:/weight/code/checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_all29_bs1.pth"))
+        self.model.load_state_dict(torch.load(CHECKPOINT_PATH))
         #局部模型
-        # self.model.load_state_dict(torch.load("D:/weight/code/checkpoints/XIAOHONGSHU/BOTTLE/BOTTLE_best_icon1_bs1.pth"))
+        # self.model.load_state_dict(torch.load(CHECKPOINT_PATH))
         self.model.eval()
         torch.no_grad()
         dataloaders = self.get_dataloader(data_type=self.data_type)

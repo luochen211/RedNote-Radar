@@ -1,4 +1,5 @@
 import face_recognition
+from pathlib import Path
 
 
 def detect_faces(image_path):
@@ -33,10 +34,10 @@ import os
 import json
 from tqdm import tqdm
 if __name__ == "__main__":
-    # 设置路径（根据你的实际位置调整）
-    base_img_dir = r"D:/szz_featureextraction/icon_data/img/img"
-    json_path = 'D:/szz_featureextraction/deep-photo-aesthetics-master/icon_data_with_aesthetic.json'  # 原始JSON文件路径
-    output_json = 'icon_data_all.json'  # 输出文件路径
+    base_dir = Path(__file__).resolve().parent
+    base_img_dir = base_dir / "icon_data" / "raw-images"
+    json_path = base_dir / "deep-photo-aesthetics-master" / "icon_data_with_aesthetic.json"
+    output_json = base_dir / "icon_data_all.json"
 
     # 1. 读取原始JSON文件
     with open(json_path, 'r', encoding='utf-8') as f:
@@ -51,17 +52,17 @@ if __name__ == "__main__":
         filename = os.path.basename(cover_path)
 
         # 构建完整图片路径
-        full_img_path = os.path.join(base_img_dir, filename)
+        full_img_path = base_img_dir / filename
 
         # 3. 检查图片是否存在
-        if not os.path.exists(full_img_path):
+        if not full_img_path.exists():
             print(f"Warning: Image not found - {full_img_path}")
             item["img_aesthetics"] = None
             continue
 
         # 4. 处理图片并预测分数
         try:
-            num_faces = detect_faces(full_img_path)
+            num_faces = detect_faces(str(full_img_path))
             # if use_cuda:
             #     img_tensor = img_tensor.cuda()
             #

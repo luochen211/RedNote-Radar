@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 
@@ -18,12 +19,12 @@ def is_folder_empty(folder_path):
 
     # 示例用法
 
-FRAME_DIR = 'F:/mj/polyuproject/mmvideo/dataset_xiaohongshu/xiaohongshu/video_frames/'
+FRAME_DIR = Path(__file__).resolve().parents[1] / "icon_data" / "keyframes"
 
-# error_txt = open('空视频帧文件夹.txt', 'a')
+# error_txt = open('empty-video-frame-directories.txt', 'a')
 
 for subdir in os.listdir(FRAME_DIR):
-    subdir_path = os.path.join(FRAME_DIR, subdir)
+    subdir_path = FRAME_DIR / subdir
     if is_folder_empty(subdir_path):
         print(f"The folder '{subdir}' is empty.")
         os.rmdir(subdir_path)

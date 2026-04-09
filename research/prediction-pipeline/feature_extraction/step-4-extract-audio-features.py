@@ -1,5 +1,6 @@
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # 添加这一行
+from pathlib import Path
 import torch
 # import torchaudio
 import numpy as np
@@ -8,18 +9,17 @@ from torch import nn
 from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+BASE_DIR = Path(__file__).resolve().parent
 
 # 指定文件夹和输出文件夹
-# F:\mj\polyuproject\mmvideo\dataset_xiaohongshu\xiaohongshu\error_video
-audio_folder = 'D:/szz_featureextraction/icon_data/audio'
-# audio_folder = 'F:\mj\polyuproject\mmvideo\dataset_xiaohongshu\xiaohongshu\error_audios'
-output_folder = "D:/szz_featureextraction/icon_data/audio_fea"
-# output_folder = "F:\mj\polyuproject\mmvideo\dataset_xiaohongshu\xiaohongshuaudios_features_"
+audio_folder = BASE_DIR / "icon_data" / "audio"
+output_folder = BASE_DIR / "icon_data" / "audio-features"
+output_folder.mkdir(parents=True, exist_ok=True)
 # 创建一个空字典来存储音频特征
 audio_features_dict = {}
 
 
-model = torch.hub.load('./torchvggish/', 'vggish', source = 'local')
+model = torch.hub.load(str(BASE_DIR / "torchvggish"), 'vggish', source='local')
 model = model.to(device)
 model.eval()
 
