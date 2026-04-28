@@ -14,6 +14,15 @@ function sanitizeFilename(filename: string) {
     return filename.replace(/[^a-zA-Z0-9._-]/g, "_");
 }
 
+function parseOptionalJson(value: FormDataEntryValue | null) {
+    if (typeof value !== "string" || !value.trim()) return undefined;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return undefined;
+    }
+}
+
 async function generateDefaultCover(videoPath: string, uploadDir: string) {
     const thumbDir = path.join(uploadDir, "__thumb");
     await mkdir(thumbDir, { recursive: true });
@@ -74,6 +83,8 @@ export async function POST(req: Request) {
         const title = String(formData.get("title") ?? "").trim();
         const textContent = String(formData.get("textContent") ?? "");
         const tags = JSON.parse(String(formData.get("tags") ?? "[]"));
+        const videoMeta = parseOptionalJson(formData.get("videoMeta"));
+        const coverMeta = parseOptionalJson(formData.get("coverMeta"));
         const followers = Number(formData.get("followers") ?? 0) || 0;
         const subscribers = Number(formData.get("subscribers") ?? 0) || 0;
         const likes = Number(formData.get("likes") ?? 0) || 0;
@@ -124,6 +135,8 @@ export async function POST(req: Request) {
             title,
             textContent,
             tags,
+            videoMeta,
+            coverMeta,
             followers,
             subscribers,
             likes,

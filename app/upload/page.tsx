@@ -121,6 +121,54 @@ async function generateVideoFramePreview(file: File) {
     }
 }
 
+async function readVideoMetadata(file: File) {
+    return new Promise<{ duration: number; width: number; height: number } | null>((resolve) => {
+        const objectUrl = URL.createObjectURL(file);
+        const video = document.createElement("video");
+
+        const cleanup = () => {
+            URL.revokeObjectURL(objectUrl);
+            video.remove();
+        };
+
+        video.preload = "metadata";
+        video.src = objectUrl;
+        video.onloadedmetadata = () => {
+            const metadata = {
+                duration: Number.isFinite(video.duration) ? video.duration : 0,
+                width: video.videoWidth || 0,
+                height: video.videoHeight || 0,
+            };
+            cleanup();
+            resolve(metadata);
+        };
+        video.onerror = () => {
+            cleanup();
+            resolve(null);
+        };
+    });
+}
+
+async function readImageMetadata(file: File) {
+    return new Promise<{ width: number; height: number } | null>((resolve) => {
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+
+        const cleanup = () => URL.revokeObjectURL(objectUrl);
+
+        image.onload = () => {
+            const metadata = { width: image.naturalWidth || 0, height: image.naturalHeight || 0 };
+            cleanup();
+            resolve(metadata);
+        };
+        image.onerror = () => {
+            cleanup();
+            resolve(null);
+        };
+        image.src = objectUrl;
+    });
+}
+
 export default function UploadPage() {
     const router = useRouter();
     const { lang } = useLanguage();
@@ -145,12 +193,15 @@ export default function UploadPage() {
     const [coverName, setCoverName] = useState("");
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
+    const [videoMetadata, setVideoMetadata] = useState<{ duration: number; width: number; height: number } | null>(null);
+    const [coverMetadata, setCoverMetadata] = useState<{ width: number; height: number } | null>(null);
     const [defaultCoverPreview, setDefaultCoverPreview] = useState<string | null>(null);
 
     const applyVideoFile = async (file: File) => {
         setVideoName(file.name);
         setVideoFile(file);
         setIsDraggingVideo(false);
+        setVideoMetadata(await readVideoMetadata(file));
 
         if (!coverFile) {
             const preview = await generateVideoFramePreview(file);
@@ -172,6 +223,7 @@ export default function UploadPage() {
             setCoverFile(file);
             setIsDraggingCover(false);
             setDefaultCoverPreview(null);
+            readImageMetadata(file).then(setCoverMetadata);
         }
     };
 
@@ -190,6 +242,7 @@ export default function UploadPage() {
         if (file) {
             setCoverName(file.name);
             setCoverFile(file);
+            readImageMetadata(file).then(setCoverMetadata);
         }
         setIsDraggingCover(false);
     };
@@ -226,6 +279,12 @@ export default function UploadPage() {
             payload.append("followers", String(Number(followers) || 0));
             payload.append("subscribers", String(Number(subscribers) || 0));
             payload.append("likes", String(Number(likes) || 0));
+            if (videoMetadata) {
+                payload.append("videoMeta", JSON.stringify(videoMetadata));
+            }
+            if (coverMetadata) {
+                payload.append("coverMeta", JSON.stringify(coverMetadata));
+            }
             if (!province) {
                 alert(t.placeholderProvince);
                 setIsProcessing(false);

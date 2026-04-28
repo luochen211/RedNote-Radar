@@ -4947,7 +4947,9 @@ body {
 
 /* Homepage hero tuning: rebalance the first screen without changing structure. */
 .landing-home {
-  overflow: hidden;
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
 }
 
 .landing-home::before {
@@ -4965,7 +4967,7 @@ body {
 
 .landing-main {
   width: min(95vw, 1280px);
-  height: calc(100vh - 108px);
+  min-height: calc(100vh - 108px);
   padding: 18px 0 22px;
 }
 

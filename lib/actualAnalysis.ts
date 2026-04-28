@@ -14,6 +14,15 @@ type SubmissionInput = {
   likes?: number;
   videoPath?: string;
   coverPath?: string;
+  videoMeta?: {
+    duration?: number;
+    width?: number;
+    height?: number;
+  };
+  coverMeta?: {
+    width?: number;
+    height?: number;
+  };
 };
 
 type MediaMeta = {
@@ -151,6 +160,15 @@ async function readMdls(pathname: string, fields: string[]) {
   return result;
 }
 
+async function tryReadMdls(pathname: string, fields: string[]) {
+  try {
+    return await readMdls(pathname, fields);
+  } catch (error) {
+    console.warn("Unable to read video metadata with mdls:", error);
+    return null;
+  }
+}
+
 async function readSips(pathname: string) {
   const { stdout } = await execFileAsync("/usr/bin/sips", ["-g", "pixelWidth", "-g", "pixelHeight", pathname]);
   const width = Number(stdout.match(/pixelWidth:\s*(\d+)/)?.[1] ?? 0);
@@ -158,10 +176,19 @@ async function readSips(pathname: string) {
   return { width, height };
 }
 
-async function getVideoMeta(videoPath: string): Promise<MediaMeta> {
+async function tryReadSips(pathname: string) {
+  try {
+    return await readSips(pathname);
+  } catch (error) {
+    console.warn("Unable to read cover metadata with sips:", error);
+    return null;
+  }
+}
+
+async function getVideoMeta(videoPath: string, fallback?: SubmissionInput["videoMeta"]): Promise<MediaMeta> {
   const absolutePath = path.join(process.cwd(), "public", videoPath.replace(/^\/+/, ""));
   const [meta, fileStats] = await Promise.all([
-    readMdls(absolutePath, [
+    tryReadMdls(absolutePath, [
       "kMDItemDurationSeconds",
       "kMDItemPixelWidth",
       "kMDItemPixelHeight",
@@ -170,24 +197,30 @@ async function getVideoMeta(videoPath: string): Promise<MediaMeta> {
     ]),
     stat(absolutePath),
   ]);
+  const duration = Number(meta?.kMDItemDurationSeconds ?? fallback?.duration ?? 0) || 0;
+  const width = Number(meta?.kMDItemPixelWidth ?? fallback?.width ?? 0) || 0;
+  const height = Number(meta?.kMDItemPixelHeight ?? fallback?.height ?? 0) || 0;
+  const totalBitRate = Number(meta?.kMDItemTotalBitRate ?? 0) || (duration > 0 ? Math.round((fileStats.size * 8) / duration / 1000) : 0);
 
   return {
-    duration: Number(meta.kMDItemDurationSeconds ?? 0) || 0,
-    width: Number(meta.kMDItemPixelWidth ?? 0) || 0,
-    height: Number(meta.kMDItemPixelHeight ?? 0) || 0,
-    audioBitRate: Number(meta.kMDItemAudioBitRate ?? 0) || 0,
-    totalBitRate: Number(meta.kMDItemTotalBitRate ?? 0) || 0,
+    duration,
+    width,
+    height,
+    audioBitRate: Number(meta?.kMDItemAudioBitRate ?? 0) || 0,
+    totalBitRate,
     fileSize: fileStats.size,
   };
 }
 
-async function getCoverMeta(coverPath?: string): Promise<CoverMeta | null> {
+async function getCoverMeta(coverPath?: string, fallback?: SubmissionInput["coverMeta"]): Promise<CoverMeta | null> {
   if (!coverPath) return null;
   const absolutePath = path.join(process.cwd(), "public", coverPath.replace(/^\/+/, ""));
-  const [imageMeta, fileStats] = await Promise.all([readSips(absolutePath), stat(absolutePath)]);
+  const [imageMeta, fileStats] = await Promise.all([tryReadSips(absolutePath), stat(absolutePath)]);
+  const width = imageMeta?.width ?? fallback?.width ?? 0;
+  const height = imageMeta?.height ?? fallback?.height ?? 0;
   return {
-    width: imageMeta.width,
-    height: imageMeta.height,
+    width,
+    height,
     fileSize: fileStats.size,
   };
 }
@@ -300,7 +333,10 @@ export async function buildActualResult(input: SubmissionInput) {
     throw new Error("Missing uploaded video path");
   }
 
-  const [video, cover] = await Promise.all([getVideoMeta(input.videoPath), getCoverMeta(input.coverPath)]);
+  const [video, cover] = await Promise.all([
+    getVideoMeta(input.videoPath, input.videoMeta),
+    getCoverMeta(input.coverPath, input.coverMeta),
+  ]);
   const titleAnalysis = analyzeSentiment(input.title ?? "");
   const textAnalysis = analyzeSentiment(input.textContent ?? "");
   const readability = analyzeReadability(input.textContent ?? "");
