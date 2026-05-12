@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
+import ParticleBackground from "../components/ParticleBackground";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { isAdminRole } from "@/lib/roles";
@@ -109,7 +110,8 @@ export default function ProfilePage() {
 
     if (isLoading || historyLoading || !user) {
         return (
-            <div className="page workspace-page workspace-inverse workspace-soft">
+            <div className="page doc-home overview-page workspace-page workspace-inverse workspace-soft">
+                <ParticleBackground />
                 <Navbar />
                 <div className="loader" style={{ padding: "120px 0", textAlign: "center" }}>
                     <div className="spinner" style={{ margin: "0 auto" }}></div>
@@ -120,7 +122,8 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="page workspace-page workspace-inverse workspace-soft">
+        <div className="page doc-home overview-page workspace-page workspace-inverse workspace-soft">
+            <ParticleBackground />
             <Navbar />
             <section className="glass fade-up workspace-panel workspace-section" style={{ padding: 36, marginTop: 36, minHeight: "70vh" }}>
                 <div className="workspace-header" style={{ marginBottom: 28 }}>
