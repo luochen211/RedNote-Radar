@@ -272,13 +272,13 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
 
     const platform =
       coverQuality >= 75 && harmony >= 0.68
-        ? "小红书"
+        ? "Social media"
         : hasVoice && audioArousal >= 60 && textArousal >= 60
           ? "抖音"
           : "视频号";
 
     const platformReasoning =
-      platform === "小红书"
+      platform === "Social media"
         ? `封面质量 ${percentText(coverQuality)}、画面和谐度 ${toFixedText(harmony)}，更适合依靠封面点击与搜索长尾承接种草流量。`
         : platform === "抖音"
           ? `音频激活度 ${percentText(audioArousal)}、文本激活度 ${percentText(textArousal)} 具备更强的滑动场景抓手，适合快节奏分发。`
@@ -413,13 +413,13 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
 
   const platform =
     coverQuality >= 75 && harmony >= 0.68
-      ? "Xiaohongshu"
+      ? "Social media"
       : hasVoice && audioArousal >= 60 && textArousal >= 60
         ? "Douyin"
         : "WeChat Video";
 
   const platformReasoning =
-    platform === "Xiaohongshu"
+    platform === "Social media"
       ? `Cover quality at ${percentText(coverQuality)} and harmony at ${toFixedText(harmony)} fit click-through and search-driven seeding better than fast-feed entertainment.`
       : platform === "Douyin"
         ? `Audio arousal at ${percentText(audioArousal)} and text arousal at ${percentText(textArousal)} are better suited to fast-scroll distribution.`

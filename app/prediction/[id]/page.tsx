@@ -15,7 +15,7 @@ const copy = {
         localDesc: "Based on the like count range from Hotel Icon's own historical data, this refers to the prediction of the probability that the video content will achieve a high level of engagement relative to its Hotel Icon's performance history.",
         localLabel: "Local scope:",
         globalTitle: "Engagement score prediction (Global scope)",
-        globalDesc: "Based on the range of likes from all official hotel accounts on the Xiaohongshu platform within the dataset, this refers to the prediction of the the probability that the video content will reach industry-leading engagement levels.",
+        globalDesc: "Based on the range of likes from all official hotel accounts on Social media within the dataset, this refers to the prediction of the the probability that the video content will reach industry-leading engagement levels.",
         globalLabel: "Global scope:",
     },
     zh: {
@@ -27,7 +27,7 @@ const copy = {
         localDesc: "基于唯港荟现有历史数据的点赞数范围，指该视频内容相对于唯港荟历史表现，能够获得高互动的概率预测。",
         localLabel: "本号范围：",
         globalTitle: "互动指数预测（全网范围）",
-        globalDesc: "基于数据集内全网小红书酒店官方账号的点赞数范围，指该视频内容能够达到行业头部互动水平的概率预测。",
+        globalDesc: "基于数据集内全网 Social media 酒店官方账号的点赞数范围，指该视频内容能够达到行业头部互动水平的概率预测。",
         globalLabel: "全网范围：",
     }
 };

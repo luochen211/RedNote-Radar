@@ -39,7 +39,7 @@ const friendLinks = [
         url: "https://www.hotel-icon.com/zh-tw/",
     },
     {
-        label: "Hotel Icon · Xiaohongshu",
+        label: "Hotel Icon · Social media",
         url: "https://www.xiaohongshu.com/explore",
     },
     {
