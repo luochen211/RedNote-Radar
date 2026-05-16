@@ -8,6 +8,22 @@ const quickUsers = [
     { username: "demo", password: "demo", role: "USER" },
 ];
 
+function authorizeQuickUser(username: string, password: string) {
+    const quickUser = quickUsers.find(
+        (user) => user.username === username && user.password === password
+    );
+
+    if (!quickUser) {
+        return null;
+    }
+
+    return {
+        id: `quick-${quickUser.username}`,
+        name: quickUser.username,
+        role: quickUser.role
+    };
+}
+
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
@@ -27,7 +43,7 @@ export const authOptions: NextAuthOptions = {
                     });
 
                     if (!user) {
-                        return null;
+                        return authorizeQuickUser(credentials.username, credentials.password);
                     }
 
                     const isPasswordValid = await bcrypt.compare(
@@ -58,22 +74,7 @@ export const authOptions: NextAuthOptions = {
                     };
                 } catch (error) {
                     console.warn("Database auth unavailable, falling back to quick login:", error);
-
-                    const quickUser = quickUsers.find(
-                        (user) =>
-                            user.username === credentials.username &&
-                            user.password === credentials.password
-                    );
-
-                    if (!quickUser) {
-                        return null;
-                    }
-
-                    return {
-                        id: `quick-${quickUser.username}`,
-                        name: quickUser.username,
-                        role: quickUser.role
-                    };
+                    return authorizeQuickUser(credentials.username, credentials.password);
                 }
             }
         })
