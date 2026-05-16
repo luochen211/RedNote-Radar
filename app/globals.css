@@ -5955,3 +5955,171 @@ body {
     background-position: center top;
   }
 }
+
+/* 2026-05 result page color correction: match the Overview dark workspace. */
+.analysis-page,
+.workspace-soft.analysis-page {
+  --panel: rgba(30, 41, 59, 0.7);
+  --panel-strong: rgba(21, 30, 46, 0.92);
+  --border: rgba(148, 163, 184, 0.16);
+  --text: #eef6ff;
+  --muted: #9fb1c9;
+  --accent: #06b6d4;
+  --accent-2: #3b82f6;
+  color: var(--text);
+}
+
+.analysis-page::before,
+.workspace-soft.analysis-page::before {
+  background:
+    radial-gradient(circle at 12% 14%, rgba(59, 130, 246, 0.22), transparent 26%),
+    radial-gradient(circle at 82% 10%, rgba(6, 182, 212, 0.16), transparent 20%),
+    linear-gradient(180deg, #121a2a 0%, #0f1726 42%, #0b1120 100%) !important;
+}
+
+.analysis-page::after,
+.workspace-soft.analysis-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 100%);
+}
+
+.analysis-page .hero-banner {
+  background: rgba(16, 24, 39, 0.74);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.24);
+  backdrop-filter: blur(16px);
+}
+
+.analysis-page .brand-title,
+.analysis-page .nav-link,
+.analysis-page .ghost-button,
+.analysis-page .outline-button,
+.analysis-page .nav-text-btn,
+.analysis-page .diagnosis-hero-copy h1,
+.analysis-page .diagnosis-summary-card h2,
+.analysis-page .diagnosis-card h3,
+.analysis-page .diagnosis-cover-copy h3,
+.analysis-page .prediction-data-item strong,
+.analysis-page .diagnosis-highlight-item strong,
+.analysis-page .diagnosis-metric-value {
+  color: var(--text) !important;
+}
+
+.analysis-page .nav-link:hover,
+.analysis-page .nav-link.active {
+  color: #ffffff !important;
+}
+
+.analysis-page .nav-link.active::after {
+  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+}
+
+.analysis-page .ghost-button,
+.analysis-page .outline-button,
+.analysis-page .nav-text-btn {
+  background: rgba(15, 23, 42, 0.56);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.analysis-page .diagnosis-hero-copy,
+.analysis-page .diagnosis-card,
+.analysis-page .diagnosis-summary-card,
+.analysis-page .diagnosis-highlight-panel,
+.analysis-page .diagnosis-cover-strip {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.76), rgba(21, 30, 46, 0.88));
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 48px rgba(2, 6, 23, 0.22);
+  backdrop-filter: blur(16px);
+}
+
+.analysis-page .diagnosis-hero-copy p,
+.analysis-page .diagnosis-summary-card p,
+.analysis-page .diagnosis-card p,
+.analysis-page .diagnosis-cover-copy p,
+.analysis-page .prediction-data-item span,
+.analysis-page .diagnosis-metric-label,
+.analysis-page .diagnosis-action-tag,
+.analysis-page .diagnosis-highlight-item,
+.analysis-page .muted,
+.analysis-page .caption,
+.analysis-page .tiny {
+  color: #afc2da !important;
+}
+
+.analysis-page .diagnosis-kicker,
+.analysis-page .diagnosis-section-label,
+.analysis-page .diagnosis-sub-label,
+.analysis-page .diagnosis-panel-label {
+  color: #7dd3fc !important;
+}
+
+.analysis-page .diagnosis-status-chip,
+.analysis-page .diagnosis-tag,
+.analysis-page .diagnosis-tab,
+.analysis-page .diagnosis-action-tag {
+  background: rgba(15, 23, 42, 0.56);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #dbe7f8 !important;
+}
+
+.analysis-page .diagnosis-status-chip:not(.subtle),
+.analysis-page .diagnosis-tab.active,
+.analysis-page .diagnosis-tab:hover {
+  background: rgba(6, 182, 212, 0.16);
+  border-color: rgba(6, 182, 212, 0.32);
+  color: #b7f2ff !important;
+}
+
+.analysis-page .diagnosis-action-item,
+.analysis-page .diagnosis-metric-card,
+.analysis-page .diagnosis-metric-card:nth-child(3n + 1),
+.analysis-page .diagnosis-metric-card:nth-child(3n + 2),
+.analysis-page .diagnosis-metric-card:nth-child(3n) {
+  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.analysis-page .prediction-data-item,
+.analysis-page .diagnosis-dimension-item,
+.analysis-page .diagnosis-highlight-item {
+  border-bottom-color: rgba(148, 163, 184, 0.12);
+}
+
+.analysis-page .primary-score-card .gauge-arc,
+.analysis-page .gauge-arc {
+  background:
+    conic-gradient(
+      from 180deg,
+      rgba(8, 15, 28, 0.98) 0deg,
+      rgba(8, 15, 28, 0.98) 26deg,
+      rgba(6, 182, 212, 0.95) 110deg,
+      rgba(59, 130, 246, 0.95) 160deg,
+      rgba(255, 255, 255, 0.08) 160deg 180deg,
+      transparent 180deg 360deg
+    );
+}
+
+.analysis-page .primary-score-card .gauge-center,
+.analysis-page .gauge-center {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.analysis-page .primary-score-card .gauge-value,
+.analysis-page .gauge-value {
+  color: #f8fafc !important;
+}
+
+.analysis-page .primary-score-card .gauge-needle,
+.analysis-page .gauge-needle {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(6, 182, 212, 0));
+  filter: drop-shadow(0 0 10px rgba(103, 232, 249, 0.7));
+}
