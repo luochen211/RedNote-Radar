@@ -72,7 +72,7 @@ const copy = {
     fetchError: "Failed to load analysis result",
     pageLabel: "AI Diagnosis Report",
     pageTitle: "Hotel Video InsightHub",
-    pageIntro: "Turn structured indicators into a management-ready video diagnosis and an execution plan.",
+    pageIntro: "Engagement prediction and multidimensional video diagnosis based on submitted media metrics.",
     currentUpload: "Current upload",
     reportSource: "Actual upload analysis",
     fallbackTitle: "Untitled submission",
@@ -84,8 +84,12 @@ const copy = {
     platformLabel: "Primary Platform",
     actionsLabel: "Action Plan",
     metricsLabel: "Underlying Metrics",
-    scoreLocal: "Local score",
-    scoreGlobal: "Global score",
+    scoreLocal: "Local scope",
+    scoreGlobal: "Global scope",
+    scoreLocalTitle: "Engagement score prediction (Local scope)",
+    scoreGlobalTitle: "Engagement score prediction (Global scope)",
+    scoreLocalDesc: "Based on Hotel ICON's historical data, used to evaluate the expected engagement of the uploaded post.",
+    scoreGlobalDesc: "Based on luxury-hotel data from social media platforms, used to evaluate the expected engagement of the uploaded post.",
     metricQuality: "Content quality",
     metricSentiment: "Sentiment signals",
     metricConsistency: "Consistency",
@@ -132,7 +136,7 @@ const copy = {
     fetchError: "分析结果加载失败",
     pageLabel: "AI 诊断报告",
     pageTitle: "酒店短视频智算平台",
-    pageIntro: "将结构化指标转成可汇报、可执行、可复盘的酒店短视频诊断报告。",
+    pageIntro: "基于上传素材的真实指标，输出互动分数预测与多维视频诊断。",
     currentUpload: "当前上传内容",
     reportSource: "实际上传分析",
     fallbackTitle: "未命名提交",
@@ -144,8 +148,12 @@ const copy = {
     platformLabel: "优选平台",
     actionsLabel: "优化处方与执行清单",
     metricsLabel: "底层指标工作台",
-    scoreLocal: "本号预测",
-    scoreGlobal: "全网预测",
+    scoreLocal: "本地范围",
+    scoreGlobal: "全局范围",
+    scoreLocalTitle: "互动分数预测（本地范围）",
+    scoreGlobalTitle: "互动分数预测（全局范围）",
+    scoreLocalDesc: "基于 Hotel ICON 历史数据，用于评估上传帖子的预期参与度。",
+    scoreGlobalDesc: "基于社交媒体平台所有高端酒店数据，用于评估上传帖子的预期参与度。",
     metricQuality: "内容质量",
     metricSentiment: "情绪信号",
     metricConsistency: "一致性",
@@ -213,6 +221,18 @@ function isPositiveFlag(value: string | undefined) {
   return value.toLowerCase() === "yes" || value.toLowerCase() === "likely";
 }
 
+function scoreBand(value: number, lang: "zh" | "en") {
+  if (lang === "zh") {
+    if (value >= 70) return "高分区间，说明该维度已具备较强支撑，可以作为内容优势继续放大。";
+    if (value >= 40) return "中间区间，说明该维度有基础，但仍需要通过标题、封面或节奏继续补强。";
+    return "低分区间，说明该维度是当前短板，需要优先处理。";
+  }
+
+  if (value >= 70) return "This is a high band, so the dimension can be treated as a current strength.";
+  if (value >= 40) return "This is a middle band, meaning the foundation exists but still needs sharper execution.";
+  return "This is a low band and should be treated as a priority improvement area.";
+}
+
 function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh" | "en") {
   const aesthetic = numberValue(data.quality.aesthetic);
   const readability = numberValue(data.quality.readability);
@@ -270,24 +290,19 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
           : `整体风格没有明显东方文化优势，更适合走氛围种草和场景消费路线。`
     }`;
 
-    const platform =
-      coverQuality >= 75 && harmony >= 0.68
-        ? "Social media"
-        : hasVoice && audioArousal >= 60 && textArousal >= 60
-          ? "抖音"
-          : "视频号";
+    const platform = "社交媒体平台";
 
     const platformReasoning =
-      platform === "Social media"
-        ? `封面质量 ${percentText(coverQuality)}、画面和谐度 ${toFixedText(harmony)}，更适合依靠封面点击与搜索长尾承接种草流量。`
-        : platform === "抖音"
-          ? `音频激活度 ${percentText(audioArousal)}、文本激活度 ${percentText(textArousal)} 具备更强的滑动场景抓手，适合快节奏分发。`
-          : `整体内容偏稳态表达，适合在熟人传播与品牌私域链路中承接信任型曝光。`;
+      coverQuality >= 75 && harmony >= 0.68
+        ? `封面质量 ${percentText(coverQuality)}、画面和谐度 ${toFixedText(harmony)}，适合依靠封面点击、搜索长尾与兴趣推荐承接内容流量。`
+        : hasVoice && audioArousal >= 60 && textArousal >= 60
+          ? `音频激活度 ${percentText(audioArousal)}、文本激活度 ${percentText(textArousal)} 具备较强滑动场景抓手，适合在短视频信息流中测试。`
+          : `整体内容偏稳态表达，更适合在品牌账号、社群转发与私域链路中承接信任型曝光。`;
 
     const dimensions = [
       {
         title: "视觉与美学",
-        body: `视频美学 ${percentText(aesthetic)}、封面质量 ${percentText(coverQuality)}、封面美学 ${percentText(coverAesthetic)}。${
+        body: `视频美学 ${percentText(aesthetic)}、封面质量 ${percentText(coverQuality)}、封面美学 ${percentText(coverAesthetic)}。${scoreBand(Math.min(aesthetic, coverQuality || aesthetic), "zh")}${
           strongestVisual
             ? "画面有足够的高端感和第一眼抓手，适合承担酒店产品的溢价表达。"
             : "目前视觉抓手还不够尖锐，封面与首屏还需要更明确地承载卖点。"
@@ -295,7 +310,7 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
       },
       {
         title: "叙事与一致性",
-        body: `标题-视频一致性 ${percentText(titleVideo)}、文本-视频一致性 ${percentText(textVideo)}。${
+        body: `标题-视频一致性 ${percentText(titleVideo)}、文本-视频一致性 ${percentText(textVideo)}。${scoreBand(titleVideo, "zh")}${
           titleGap
             ? "最大风险不是内容差，而是承诺错位，平台很难准确识别内容标签。"
             : "主叙事链路基本成立，但还可以进一步压缩无效信息，让卖点更早出现。"
@@ -303,7 +318,7 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
       },
       {
         title: "情感与沉浸感",
-        body: `文本-音频一致性 ${percentText(textAudio)}、音频激活度 ${percentText(audioArousal)}。${
+        body: `文本-音频一致性 ${percentText(textAudio)}、音频激活度 ${percentText(audioArousal)}。${scoreBand(Math.min(textAudio, audioArousal), "zh")}${
           emotionGap
             ? "目前情绪唤起偏弱，缺少带人进入场景的声音或旁白。"
             : "情绪链路较完整，后续重点是把沉浸感进一步转化为评论和收藏动作。"
@@ -372,8 +387,8 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
       dimensions,
       steps,
       highlightStats: [
-        { label: "本号预测", value: percentText(localScore) },
-        { label: "全网预测", value: percentText(globalScore) },
+        { label: "本地范围", value: percentText(localScore) },
+        { label: "全局范围", value: percentText(globalScore) },
         { label: "标题-视频一致性", value: percentText(titleVideo) },
         { label: "封面质量", value: percentText(coverQuality) },
       ],
@@ -411,19 +426,14 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
         : `The style leans more toward general atmosphere than a distinct cultural narrative.`
   }`;
 
-  const platform =
-    coverQuality >= 75 && harmony >= 0.68
-      ? "Social media"
-      : hasVoice && audioArousal >= 60 && textArousal >= 60
-        ? "Douyin"
-        : "WeChat Video";
+  const platform = "Social media platform";
 
   const platformReasoning =
-    platform === "Social media"
-      ? `Cover quality at ${percentText(coverQuality)} and harmony at ${toFixedText(harmony)} fit click-through and search-driven seeding better than fast-feed entertainment.`
-      : platform === "Douyin"
-        ? `Audio arousal at ${percentText(audioArousal)} and text arousal at ${percentText(textArousal)} are better suited to fast-scroll distribution.`
-        : `The video currently reads as a steadier brand expression and is better aligned with trust-based exposure.`;
+    coverQuality >= 75 && harmony >= 0.68
+      ? `Cover quality at ${percentText(coverQuality)} and harmony at ${toFixedText(harmony)} fit cover-led clicks, search traffic, and interest-based recommendation.`
+      : hasVoice && audioArousal >= 60 && textArousal >= 60
+        ? `Audio arousal at ${percentText(audioArousal)} and text arousal at ${percentText(textArousal)} are better suited to fast-scroll short-video feeds.`
+        : `The video currently reads as a steadier brand expression and is better aligned with trust-based exposure through owned social channels.`;
 
   return {
     conclusion,
@@ -436,7 +446,7 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
     dimensions: [
       {
         title: "Visual Aesthetics",
-        body: `Video aesthetics is ${percentText(aesthetic)}, cover quality is ${percentText(coverQuality)}, and cover aesthetics is ${percentText(coverAesthetic)}. ${
+        body: `Video aesthetics is ${percentText(aesthetic)}, cover quality is ${percentText(coverQuality)}, and cover aesthetics is ${percentText(coverAesthetic)}. ${scoreBand(Math.min(aesthetic, coverQuality || aesthetic), "en")} ${
           strongestVisual
             ? "The visual layer already carries premium hotel value."
             : "The visual hook still needs to be sharper in the cover and early frames."
@@ -444,7 +454,7 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
       },
       {
         title: "Narrative Logic",
-        body: `Title-video consistency is ${percentText(titleVideo)} and text-video consistency is ${percentText(textVideo)}. ${
+        body: `Title-video consistency is ${percentText(titleVideo)} and text-video consistency is ${percentText(textVideo)}. ${scoreBand(titleVideo, "en")} ${
           titleGap
             ? "The issue is not weak content but a mismatched promise."
             : "The narrative structure works, but the strongest selling point should surface earlier."
@@ -452,7 +462,7 @@ function buildDiagnosis(data: AnalysisData, result: ResultData | null, lang: "zh
       },
       {
         title: "Emotional Resonance",
-        body: `Text-audio consistency is ${percentText(textAudio)} and audio arousal is ${percentText(audioArousal)}. ${
+        body: `Text-audio consistency is ${percentText(textAudio)} and audio arousal is ${percentText(audioArousal)}. ${scoreBand(Math.min(textAudio, audioArousal), "en")} ${
           emotionGap
             ? "The emotional bridge into the scene is still too weak."
             : "The emotional chain is in place and can be pushed toward more saves and comments."
@@ -754,7 +764,10 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
           <h2>{status === "COMPLETED" ? t.pageIntro : t.processingDesc}</h2>
           <div className="prediction-primary-panels">
             <div className="prediction-primary-panel">
-              <div className="diagnosis-sub-label">{t.scoreLocal}</div>
+              <div className="diagnosis-sub-label tooltip score-scope-tooltip">
+                <span className="label">{t.scoreLocalTitle}</span>
+                <div className="tooltip-bubble diagnosis-tooltip-bubble">{t.scoreLocalDesc}</div>
+              </div>
               <div className="prediction-gauge-shell">
                 <div className="gauge-wrap" style={{ margin: 0 }}>
                   <div className="gauge">
@@ -771,7 +784,10 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
               </div>
             </div>
             <div className="prediction-primary-panel">
-              <div className="diagnosis-sub-label">{t.scoreGlobal}</div>
+              <div className="diagnosis-sub-label tooltip score-scope-tooltip">
+                <span className="label">{t.scoreGlobalTitle}</span>
+                <div className="tooltip-bubble diagnosis-tooltip-bubble">{t.scoreGlobalDesc}</div>
+              </div>
               <div className="prediction-gauge-shell">
                 <div className="gauge-wrap" style={{ margin: 0 }}>
                   <div className="gauge">

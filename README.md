@@ -1,4 +1,4 @@
-# Hotel Video InsightHub (RedNote Radar)
+# Hotel Video InsightHub
 **Hotel Video Performance Analytics & Effectiveness Prediction System**
 ## 📖 Introduction
 **Video-based Social Media Marketing Analysis and Effectiveness Prediction**
@@ -22,7 +22,7 @@ The system utilizes a 5-module model to predict user engagement:
     - Hotel metrics (Followers, Subscribers, Total Likes)
 ### 3. Prediction Dashboard
 - **Local Scope**: Engagement probability relative to the hotel's historical performance.
-- **Global Scope**: Engagement probability relative to industry-leading performance on Xiaohongshu.
+- **Global Scope**: Engagement probability relative to industry-leading performance across luxury-hotel social media data.
 ### 4. Analysis Dashboard
 - **Content Quality Scores**: Video aesthetics, text readability, cover image quality/aesthetics, human voice/face presence.
 - **Content Sentiment Scores**: Sentiment and arousal scores for Title, Text, and Audio.
@@ -49,8 +49,8 @@ The system utilizes a 5-module model to predict user engagement:
 ### Installation
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/cuidong233/RedNote-Radar.git
-    cd RedNote-Radar
+    git clone <repository-url>
+    cd hotel-video-insighthub
     ```
 2.  **Install dependencies**
     ```bash
@@ -66,5 +66,27 @@ The system utilizes a 5-module model to predict user engagement:
     npm run dev
     ```
     Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚄 Deploying to Railway
+This project is ready to deploy to Railway as a Next.js app. The included
+`railway.json` uses Railpack, builds with `npm run build`, syncs Prisma with
+`npx prisma db push`, and starts the standalone Next.js server.
+
+Set these Railway environment variables:
+```bash
+DATABASE_URL="file:/data/dev.db"
+NEXTAUTH_URL="https://your-railway-domain.up.railway.app"
+NEXTAUTH_SECRET="generate-a-long-random-secret"
+```
+
+Railway setup steps:
+1. Create a new Railway project from this GitHub repository.
+2. Add a Railway Volume mounted at `/data` if you keep SQLite.
+3. Set the environment variables above. Update `NEXTAUTH_URL` after Railway gives
+   you the production domain.
+4. Deploy the service. Railway will use `railway.json` automatically.
+
+For production use with multiple instances or heavier traffic, PostgreSQL is
+recommended instead of SQLite.
+
 ## 📄 License
 This project is private and proprietary.

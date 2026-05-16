@@ -12,10 +12,10 @@ const copy = {
         errorNotFound: "Task not found",
         errorFailed: "Prediction failed",
         localTitle: "Engagement score prediction (Local scope)",
-        localDesc: "Based on the like count range from Hotel Icon's own historical data, this refers to the prediction of the probability that the video content will achieve a high level of engagement relative to its Hotel Icon's performance history.",
+        localDesc: "Based on Hotel ICON's historical data, used to evaluate the expected engagement of the uploaded post.",
         localLabel: "Local scope:",
         globalTitle: "Engagement score prediction (Global scope)",
-        globalDesc: "Based on the range of likes from all official hotel accounts on Social media within the dataset, this refers to the prediction of the the probability that the video content will reach industry-leading engagement levels.",
+        globalDesc: "Based on luxury-hotel data from social media platforms, used to evaluate the expected engagement of the uploaded post.",
         globalLabel: "Global scope:",
     },
     zh: {
@@ -24,11 +24,11 @@ const copy = {
         errorNotFound: "任务未找到",
         errorFailed: "预测失败",
         localTitle: "互动指数预测（本号范围）",
-        localDesc: "基于唯港荟现有历史数据的点赞数范围，指该视频内容相对于唯港荟历史表现，能够获得高互动的概率预测。",
-        localLabel: "本号范围：",
+        localDesc: "基于 Hotel ICON 历史数据，用于评估上传帖子的预期参与度。",
+        localLabel: "本地范围：",
         globalTitle: "互动指数预测（全网范围）",
-        globalDesc: "基于数据集内全网 Social media 酒店官方账号的点赞数范围，指该视频内容能够达到行业头部互动水平的概率预测。",
-        globalLabel: "全网范围：",
+        globalDesc: "基于社交媒体平台所有高端酒店数据，用于评估上传帖子的预期参与度。",
+        globalLabel: "全局范围：",
     }
 };
 

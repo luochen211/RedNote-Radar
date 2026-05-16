@@ -3489,7 +3489,7 @@ body {
   background:
     linear-gradient(135deg, rgba(11, 20, 36, 0.34), rgba(11, 20, 36, 0.62)),
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(7, 13, 24, 0.18)),
-    url("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1800&q=80");
+    url("/hotel-hero-bg.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -4982,7 +4982,7 @@ body {
   background:
     linear-gradient(135deg, rgba(8, 16, 30, 0.2), rgba(8, 16, 30, 0.52)),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(7, 13, 24, 0.12)),
-    url("https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1800&q=80");
+    url("/hotel-hero-bg.jpg");
   background-size: cover;
   background-position: center;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -5753,5 +5753,205 @@ body {
     --analysis-h3: 17px;
     --analysis-body: 14px;
     --analysis-number: 24px;
+  }
+}
+
+/* 2026-05 review implementation: homepage framing and white result surface */
+.landing-home .landing-hero-copy {
+  min-height: clamp(560px, calc(100vh - 164px), 760px);
+  background-size: cover;
+  background-position: center 58%;
+}
+
+.landing-home .chip {
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 88px;
+}
+
+.landing-home .doc-fact-index {
+  margin-right: 0;
+}
+
+.landing-home .chip span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.analysis-page,
+.workspace-soft.analysis-page {
+  --panel: #ffffff;
+  --panel-strong: #ffffff;
+  --border: rgba(15, 23, 42, 0.1);
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #0369a1;
+  --accent-2: #2563eb;
+  color: var(--text);
+}
+
+.analysis-page::before,
+.workspace-soft.analysis-page::before {
+  background: #ffffff !important;
+}
+
+.analysis-page .hero-banner {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
+}
+
+.analysis-page .brand-title,
+.analysis-page .nav-link,
+.analysis-page .ghost-button,
+.analysis-page .outline-button,
+.analysis-page .nav-text-btn,
+.analysis-page .diagnosis-hero-copy h1,
+.analysis-page .diagnosis-summary-card h2,
+.analysis-page .diagnosis-card h3,
+.analysis-page .diagnosis-cover-copy h3,
+.analysis-page .prediction-data-item strong,
+.analysis-page .diagnosis-highlight-item strong,
+.analysis-page .diagnosis-metric-value {
+  color: var(--text) !important;
+}
+
+.analysis-page .nav-link:hover,
+.analysis-page .nav-link.active {
+  color: #020617 !important;
+}
+
+.analysis-page .nav-link.active::after {
+  background: #0f172a;
+}
+
+.analysis-page .ghost-button,
+.analysis-page .outline-button,
+.analysis-page .nav-text-btn {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.analysis-page .diagnosis-hero-copy,
+.analysis-page .diagnosis-card,
+.analysis-page .diagnosis-summary-card,
+.analysis-page .diagnosis-highlight-panel,
+.analysis-page .diagnosis-cover-strip {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+  backdrop-filter: none;
+}
+
+.analysis-page .diagnosis-hero-copy p,
+.analysis-page .diagnosis-summary-card p,
+.analysis-page .diagnosis-card p,
+.analysis-page .diagnosis-cover-copy p,
+.analysis-page .prediction-data-item span,
+.analysis-page .diagnosis-metric-label,
+.analysis-page .diagnosis-action-tag,
+.analysis-page .diagnosis-highlight-item,
+.analysis-page .muted,
+.analysis-page .caption,
+.analysis-page .tiny {
+  color: var(--muted) !important;
+}
+
+.analysis-page .diagnosis-kicker,
+.analysis-page .diagnosis-section-label,
+.analysis-page .diagnosis-sub-label,
+.analysis-page .diagnosis-panel-label {
+  color: #0369a1 !important;
+}
+
+.analysis-page .diagnosis-status-chip,
+.analysis-page .diagnosis-tag,
+.analysis-page .diagnosis-tab,
+.analysis-page .diagnosis-action-tag {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #475569 !important;
+}
+
+.analysis-page .diagnosis-status-chip:not(.subtle),
+.analysis-page .diagnosis-tab.active,
+.analysis-page .diagnosis-tab:hover {
+  background: #e0f2fe;
+  border-color: rgba(3, 105, 161, 0.22);
+  color: #075985 !important;
+}
+
+.analysis-page .diagnosis-action-item,
+.analysis-page .diagnosis-metric-card,
+.analysis-page .diagnosis-metric-card:nth-child(3n + 1),
+.analysis-page .diagnosis-metric-card:nth-child(3n + 2),
+.analysis-page .diagnosis-metric-card:nth-child(3n) {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.analysis-page .prediction-data-item,
+.analysis-page .diagnosis-dimension-item,
+.analysis-page .diagnosis-highlight-item {
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+
+.analysis-page .primary-score-card .gauge-arc,
+.analysis-page .gauge-arc {
+  background:
+    conic-gradient(
+      from 180deg,
+      #e2e8f0 0deg,
+      #06b6d4 92deg,
+      #2563eb 158deg,
+      rgba(15, 23, 42, 0.08) 158deg 180deg,
+      transparent 180deg 360deg
+    );
+}
+
+.analysis-page .primary-score-card .gauge-center,
+.analysis-page .workspace-page .gauge-center,
+.analysis-page .gauge-center {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.analysis-page .primary-score-card .gauge-needle,
+.analysis-page .gauge-needle {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(37, 99, 235, 0));
+  filter: none;
+}
+
+.analysis-page .diagnosis-tooltip-bubble {
+  background: #0f172a;
+  border-color: rgba(15, 23, 42, 0.18);
+  color: #e2e8f0 !important;
+}
+
+.analysis-page .score-scope-tooltip .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: help;
+}
+
+.analysis-page .score-scope-tooltip .label::after {
+  content: "?";
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .landing-home .landing-hero-copy {
+    min-height: auto;
+    background-position: center top;
   }
 }

@@ -60,9 +60,40 @@ const copy = {
 };
 
 const provinceOptions = [
-    "北京", "天津", "上海", "重庆", "河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江",
-    "安徽", "福建", "江西", "山东", "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州",
-    "云南", "陕西", "甘肃", "青海", "内蒙古", "广西", "西藏", "宁夏", "新疆", "香港", "澳门", "台湾"
+    { zh: "北京", en: "Beijing" },
+    { zh: "天津", en: "Tianjin" },
+    { zh: "上海", en: "Shanghai" },
+    { zh: "重庆", en: "Chongqing" },
+    { zh: "河北", en: "Hebei" },
+    { zh: "山西", en: "Shanxi" },
+    { zh: "辽宁", en: "Liaoning" },
+    { zh: "吉林", en: "Jilin" },
+    { zh: "黑龙江", en: "Heilongjiang" },
+    { zh: "江苏", en: "Jiangsu" },
+    { zh: "浙江", en: "Zhejiang" },
+    { zh: "安徽", en: "Anhui" },
+    { zh: "福建", en: "Fujian" },
+    { zh: "江西", en: "Jiangxi" },
+    { zh: "山东", en: "Shandong" },
+    { zh: "河南", en: "Henan" },
+    { zh: "湖北", en: "Hubei" },
+    { zh: "湖南", en: "Hunan" },
+    { zh: "广东", en: "Guangdong" },
+    { zh: "海南", en: "Hainan" },
+    { zh: "四川", en: "Sichuan" },
+    { zh: "贵州", en: "Guizhou" },
+    { zh: "云南", en: "Yunnan" },
+    { zh: "陕西", en: "Shaanxi" },
+    { zh: "甘肃", en: "Gansu" },
+    { zh: "青海", en: "Qinghai" },
+    { zh: "内蒙古", en: "Inner Mongolia" },
+    { zh: "广西", en: "Guangxi" },
+    { zh: "西藏", en: "Tibet" },
+    { zh: "宁夏", en: "Ningxia" },
+    { zh: "新疆", en: "Xinjiang" },
+    { zh: "香港", en: "Hong Kong" },
+    { zh: "澳门", en: "Macau" },
+    { zh: "台湾", en: "Taiwan" },
 ];
 
 async function generateVideoFramePreview(file: File) {
@@ -555,7 +586,7 @@ export default function UploadPage() {
                         >
                             <option value="">{t.placeholderProvince}</option>
                             {provinceOptions.map((option) => (
-                                <option key={option} value={option}>{option}</option>
+                                <option key={option.zh} value={option.zh}>{option[lang]}</option>
                             ))}
                         </select>
                     </div>

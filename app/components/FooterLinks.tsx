@@ -7,40 +7,38 @@ const copy = {
         linksTitle: "Links",
         linksSubtitle: "Friend links",
         linksAdvisors: "Academic advisors",
-        linksPartners: "Social media",
+        linksPartners: "Project resources",
         linksContact: "Contact",
-        contactEmail: "Email: info@insighthub.ai",
+        contactFunding: "This project is funded by RCDTT Hotel ICON Grant",
         contactLocation: "Location: Hong Kong · PolyU SHTM",
-        contactTBD: "Social media",
     },
     zh: {
         linksTitle: "友情链接",
         linksSubtitle: "友情链接",
         linksAdvisors: "学术顾问",
-        linksPartners: "社交媒体",
+        linksPartners: "项目资源",
         linksContact: "联系我们",
-        contactEmail: "邮箱: info@insighthub.ai",
+        contactFunding: "This project is funded by RCDTT Hotel ICON Grant",
         contactLocation: "地址: 香港 · 香港理工大学酒店及旅游业管理学院",
-        contactTBD: "社交媒体",
     },
 };
 
 const friendLinks = [
     {
-        label: "Project Advisor · Prof. Hengyun Li",
+        label: "Project Principal Investigator · Prof. Hengyun Li",
         url: "https://hengyunli.github.io/index.html",
     },
     {
-        label: "Technical Advisor · Dr. Jie Mu",
+        label: "Project Collaborator and Core Member · Dr. Jie Mu",
         url: "https://dsai.dufe.edu.cn/content_71197.html",
     },
     {
-        label: "Hotel Icon",
-        url: "https://www.hotel-icon.com/zh-tw/",
+        label: "Members · Dr. Danting Cai, Zhang Wei, Sun Haoqiang, et al.",
+        url: "https://www.polyu.edu.hk/shtm/",
     },
     {
-        label: "Hotel Icon · Social media",
-        url: "https://www.xiaohongshu.com/explore",
+        label: "Hotel ICON",
+        url: "https://www.hotel-icon.com/zh-tw/",
     },
     {
         label: "PolyU School of Hotel and Tourism Management",
@@ -71,12 +69,13 @@ export default function FooterLinks() {
                                     </a>
                                 </li>
                             ))}
+                            <li>{friendLinks[2].label}</li>
                         </ul>
                     </div>
                     <div className="links-col">
                         <div className="links-col-title">{copyLabel("linksPartners")}</div>
                         <ul>
-                            {friendLinks.slice(2).map((link) => (
+                            {friendLinks.slice(3).map((link) => (
                                 <li key={link.url}>
                                     <a href={link.url} target="_blank" rel="noreferrer">
                                         {link.label}
@@ -88,9 +87,8 @@ export default function FooterLinks() {
                     <div className="links-col">
                         <div className="links-col-title">{copyLabel("linksContact")}</div>
                         <ul>
-                            <li>{copyLabel("contactEmail")}</li>
+                            <li>{copyLabel("contactFunding")}</li>
                             <li>{copyLabel("contactLocation")}</li>
-                            <li>{copyLabel("contactTBD")}</li>
                         </ul>
                     </div>
                 </div>

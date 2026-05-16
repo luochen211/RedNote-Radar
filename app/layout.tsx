@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 export const metadata = {
   title: "酒店短视频智算台",
   description:
-    "Video-based Social Media Marketing Analysis and Effectiveness Prediction for Hotel Icon and industry benchmarks.",
+    "Video-based social media marketing analysis and effectiveness prediction for Hotel ICON and luxury-hotel industry benchmarks.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

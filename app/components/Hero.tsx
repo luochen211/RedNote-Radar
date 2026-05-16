@@ -9,7 +9,7 @@ const copy = {
         abstractLabel: "Core Method",
         methodName: "Video-based Social Media Marketing Analysis and Effectiveness Prediction",
         heroLead:
-            "Video-based social media has become a transformative marketing force. This model analyzes hotel short-video content across visual, audio and textual modalities, and predicts marketing effectiveness to support strategy optimization and consumer behavior research.",
+            "Video-based social media has become a transformative marketing force. This model analyzes hotel short-video content across visual, audio, and textual modalities, and predicts marketing effectiveness to support strategy optimization and consumer behavior research.",
         subLead: "The model comprises five modules: single-modal feature extraction, multimodal interaction, modal adaptive fusion, user attention, and engagement prediction.",
         scrollCta: "View system overview",
         quickFacts: [
@@ -24,7 +24,7 @@ const copy = {
         kicker: "方法概览",
         abstractLabel: "核心方法",
         methodName: "视频社交媒体营销分析与效果预测",
-        heroLead: "视频社交媒体已经成为重塑消费者体验的重要营销力量。本模型综合视觉、音频与文本等多模态信息，对酒店短视频内容进行分析并预测其营销效果，为内容优化、策略制定与消费者行为研究提供支持。",
+        heroLead: "视频社交媒体已经成为重塑消费者体验的重要营销力量。本模型综合视觉、音频与文本等多模态信息，对酒店短视频内容进行分析，并预测其营销效果，为内容优化、策略制定与消费者行为研究提供支持。",
         subLead: "模型由五个模块组成：单模态特征提取、多模态交互、模态自适应融合、用户注意力模块与互动效果预测模块。",
         scrollCta: "查看系统介绍",
         quickFacts: [
