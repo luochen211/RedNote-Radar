@@ -232,7 +232,7 @@ export default function LoginCard() {
                                 onChange={(e) =>
                                     setForm((prev) => ({ ...prev, account: e.target.value }))
                                 }
-                                placeholder={loginMode === "admin" ? "admin@example.com" : "hotel_account@example.com"}
+                                placeholder={loginMode === "admin" ? "admin" : "hotel_account@example.com"}
                             />
                         </label>
                         <label>

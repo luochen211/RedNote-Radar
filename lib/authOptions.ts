@@ -37,14 +37,17 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
+                const quickUser = authorizeQuickUser(credentials.username, credentials.password);
+                if (quickUser) {
+                    return quickUser;
+                }
+
                 try {
                     const user = await prisma.user.findUnique({
                         where: { username: credentials.username }
                     });
 
-                    if (!user) {
-                        return authorizeQuickUser(credentials.username, credentials.password);
-                    }
+                    if (!user) return null;
 
                     const isPasswordValid = await bcrypt.compare(
                         credentials.password,
@@ -73,8 +76,8 @@ export const authOptions: NextAuthOptions = {
                         role: user.role
                     };
                 } catch (error) {
-                    console.warn("Database auth unavailable, falling back to quick login:", error);
-                    return authorizeQuickUser(credentials.username, credentials.password);
+                    console.warn("Database auth unavailable:", error);
+                    return null;
                 }
             }
         })
