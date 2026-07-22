@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { buildActualResult } from "@/lib/actualAnalysis";
-import { requestAiDiagnosis } from "@/lib/aiDiagnosis";
 import { isAdminRole } from "@/lib/roles";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
@@ -44,13 +43,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
                 const inputData = JSON.parse(submission.inputData);
                 try {
                     const result = await buildActualResult(inputData);
-                    const aiDiagnosis = await requestAiDiagnosis(inputData, result);
-                    const completedResult = aiDiagnosis ? { ...result, aiDiagnosis } : result;
                     const updated = await prisma.submission.update({
                         where: { id },
                         data: {
                             status: 'COMPLETED',
-                            resultData: JSON.stringify(completedResult)
+                            resultData: JSON.stringify(result)
                         }
                     });
                     return NextResponse.json(updated);

@@ -46,15 +46,6 @@ type ResultData = {
     global: number;
   };
   analysis: AnalysisData;
-  aiDiagnosis?: {
-    provider: "api";
-    model: string;
-    generatedAt: string;
-    content: {
-      zh: ReturnType<typeof buildDiagnosis>;
-      en: ReturnType<typeof buildDiagnosis>;
-    };
-  };
 };
 
 type SubmissionInput = {
@@ -693,8 +684,7 @@ export default function AnalysisPage({ params }: { params: { id: string } }) {
     };
   }, [params.id, t.failedLabel, t.fetchError]);
 
-  const diagnosis = result?.aiDiagnosis?.content?.[lang]
-    ?? (result?.analysis ? buildDiagnosis(result.analysis, result, lang) : null);
+  const diagnosis = result?.analysis ? buildDiagnosis(result.analysis, result, lang) : null;
   const metricDescriptions = buildMetricDescriptions(t);
   const tabItems: Record<MetricTabKey, { title: string; items: { label: string; value: string; description?: string }[] }> = {
     quality: {
